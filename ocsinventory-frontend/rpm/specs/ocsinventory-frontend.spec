@@ -13,7 +13,7 @@ Group: Applications/Internet
 License: GPLv2
 URL: http://www.ocsinventory-ng.org/
 
-Source0: %{name}.tar.gz
+Source0: %{name}-%{version}.tar.gz
 Source1: ocsinventory-frontend.conf
 
 BuildRoot: %{buildroot}
@@ -24,7 +24,7 @@ AutoReqProv: no
 Web UI for OCS Inventory Backend API
 
 %prep
-%setup -q -c -n %{name}
+%setup -q -c -n %{name}-%{version}
 
 %install
 mkdir -p %{buildroot}/usr/share
