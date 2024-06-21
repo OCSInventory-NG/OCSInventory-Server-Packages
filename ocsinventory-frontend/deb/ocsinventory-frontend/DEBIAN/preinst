@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+if [ -d "/usr/share/ocsinventory-frontend" ]
+then
+    echo "Before update, save ocsinventory-frontend configuration files"
+    mkdir -p /var/lib/ocsinventory-frontend-update/app
+    mkdir -p /var/lib/ocsinventory-frontend-update/apache
+    cp /usr/share/ocsinventory-frontend/config.json /var/lib/ocsinventory-frontend-update/app
+    cp /usr/share/ocsinventory-frontend/.htaccess /var/lib/ocsinventory-frontend-update/app
+    cp /etc/apache2/sites-available/ocsinventory-frontend.conf /var/lib/ocsinventory-frontend-update/apache
+    echo "Ocsinventory-frontend configuration files saved"
+fi
+
+exit 0

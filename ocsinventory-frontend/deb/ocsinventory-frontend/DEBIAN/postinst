@@ -1,0 +1,23 @@
+#!/bin/sh
+set -e
+
+if [ -d "/var/lib/ocsinventory-frontend-update" ]
+then
+    echo "Restore ocsinventory-frontend configuration files"
+    cp -r /var/lib/ocsinventory-frontend-update/app/* /usr/share/ocsinventory-frontend
+    cp /var/lib/ocsinventory-frontend-update/apache/* /etc/apache2/sites-available
+fi
+
+echo "Create ocsinventory-frontend log folder"
+mkdir -p /var/log/ocsinventory-frontend
+
+echo "Enable ocsinventory-frontend.conf"
+a2ensite ocsinventory-frontend.conf
+echo "Enable apache rewrite module"
+a2enmod rewrite
+echo "Set apache rights on ocsinventory-frontend"
+chown -R www-data: /usr/share/ocsinventory-frontend
+echo "Restart apache"
+systemctl restart apache2
+
+exit 0

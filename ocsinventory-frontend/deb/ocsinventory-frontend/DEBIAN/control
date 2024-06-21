@@ -1,0 +1,12 @@
+Source: ocsinventory-frontend
+Section: ocsinventory
+Priority: standard
+Maintainer: Charlene Auger <charlene.auger@ocsinventory-ng.org>
+Build-Depends: debhelper (>= 7.0.50~)
+Homepage: https://www.ocsinventory-ng.org/
+Package: ocsinventory-frontend
+Version: 1:0.1.0-1
+Architecture: all
+Depends: apache2,
+         debconf-2.0
+Description: Web UI for OCS Inventory Backend API

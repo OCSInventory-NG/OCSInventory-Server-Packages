@@ -1,0 +1,2 @@
+Copy ocsinventory-frontend here
+Don't forget the .htaccess
