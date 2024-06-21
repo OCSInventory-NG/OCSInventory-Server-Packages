@@ -47,7 +47,7 @@ dpkg-deb -Zgzip --build ocsinventory-[backend|frontend|agent]
 
 ```bash
 rpmbuild -bs SPECS/ocsinventory-[backend|frontend|agent].spec
-mock -r ocs-[elX/fXX] SRPMS/ocsinventory-[backend|frontend|agent]-X.X.X-X.fcXX.src.rpm
+mock -r ocs-[elX|fXX] SRPMS/ocsinventory-[backend|frontend|agent]-X.X.X-X.fcXX.src.rpm
 ```
 
 ## Build docker
