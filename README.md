@@ -8,5 +8,10 @@ Packages repository for OCS Inventory Rework.
     - rpm
         - sources
         - specs
+    - deb
+        - ocsinventory-frontend
+            - DEBIAN
+            - etc/apache2/sites-available
+            - usr/share/ocsinventory-frontend
 
 **WORK IN PROGRESS**
