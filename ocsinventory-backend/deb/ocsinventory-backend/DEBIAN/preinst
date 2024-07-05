@@ -1,0 +1,36 @@
+#!/bin/sh
+set -e
+
+# is this an update or a new install ?
+echo "Checking for existing installation ..."
+if [ -d /opt/ocsinventory-backend ]; then
+    echo "Existing installation detected, updating OCS Inventory Backend ..."
+    UPDATE=1
+else
+    echo "New installation detected, installing OCS Inventory Backend ..."
+    UPDATE=0
+fi
+
+# if update, we need to backup some files
+if [ $UPDATE -eq 1 ]; then
+    echo "Backing up existing installation ..."
+    # create a backup dir
+    mkdir -p /opt/ocsinventory-backend-backup
+
+    # backup nginx and uwsgi conf
+    if [ -f /etc/nginx/sites-available/ocsinventory-backend ]; then
+        cp /etc/nginx/sites-available/ocsinventory-backend /opt/ocsinventory-backend-backup/ocsinventory-backend
+    fi
+    if [ -f /etc/uwsgi/apps-available/ocsbackend.ini ]; then
+        cp /etc/uwsgi/apps-available/ocsinventory-backend.ini /opt/ocsinventory-backend-backup/ocsinventory-backend.ini
+    fi
+    # database conf ? stored in the settings.py file
+    if [ -f /opt/Rework/OCSInventory-Server-Backend-Rework/ocsinventory_backend/settings.py ]; then
+        cp /opt/OCSInventory-Server-Backend-Rework/ocsinventory_backend/settings.py /opt/ocsinventory-backend-backup/settings.py
+    fi
+fi
+
+
+
+
+
