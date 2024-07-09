@@ -1,6 +1,6 @@
 server {
     listen 80;
-    server_name ocsbackend;
+    server_name _;
 
     location = /favicon.ico { access_log off; log_not_found off; }
 

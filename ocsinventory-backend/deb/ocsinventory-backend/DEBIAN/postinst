@@ -22,6 +22,12 @@ deactivate
 
 # if there is a backup directory, restore the configuration, else cp the configuration
 if [ -d "/opt/ocsinventory-backend-backup" ]; then
+    UPDATE=1
+else
+    UPDATE=0
+fi
+
+if [ $UPDATE -eq 1 ]; then
     echo "Restoring Nginx and UWSGI configuration ..."
     # restore UWSGI configuration
     if [ -f /opt/ocsinventory-backend-backup/ocsinventory-backend.ini ]; then
@@ -39,16 +45,32 @@ if [ ! -L /etc/nginx/sites-enabled/ocsbackend ]; then
     ln -s /etc/nginx/sites-available/ocsbackend /etc/nginx/sites-enabled/
 fi
 
+# enable UWSGI configuration
+if [ ! -L /etc/uwsgi/apps-enabled/ocsbackend.ini ]; then
+    ln -s /etc/uwsgi/apps-available/ocsbackend.ini /etc/uwsgi/apps-enabled/
+fi
+
 # run migrate 
-echo "Running migrations ..."
+echo "Running database migrations ..."
 source /opt/ocsinventory-backend/venv/bin/activate
 python3 /opt/ocsinventory-backend/manage.py migrate
 deactivate
 
+echo "Setting ownership and permissions ..."
+# change ownership and permissions on logs directory
+chown -R www-data:www-data /opt/ocsinventory-backend/
+chmod -R 755 /opt/ocsinventory-backend/logs
 
-
+echo "Restarting services ..."
 # restart services
 systemctl restart uwsgi
 systemctl restart nginx
 
-echo "Post-installation script completed successfully"
+if [ $UPDATE -eq 1 ]; then
+    echo "Removing backup directory ..."
+    rm -rf /opt/ocsinventory-backend-backup
+fi
+
+echo "Post-installation script completed successfully, update or installation completed.
+Please edit nginx configuration server_name to match your domain name and restart nginx service.
+Additonnal database configuration may be required in /opt/ocsinventory-backend/ocsinventory_backend/settings.py."

@@ -24,13 +24,8 @@ if [ $UPDATE -eq 1 ]; then
     if [ -f /etc/uwsgi/apps-available/ocsbackend.ini ]; then
         cp /etc/uwsgi/apps-available/ocsinventory-backend.ini /opt/ocsinventory-backend-backup/ocsinventory-backend.ini
     fi
-    # database conf ? stored in the settings.py file
-    if [ -f /opt/Rework/OCSInventory-Server-Backend-Rework/ocsinventory_backend/settings.py ]; then
-        cp /opt/OCSInventory-Server-Backend-Rework/ocsinventory_backend/settings.py /opt/ocsinventory-backend-backup/settings.py
+    # backup settings.py
+    if [ -f /opt/ocsinventory-backend/ocsinventory_backend/settings.py ]; then
+        cp /opt/ocsinventory-backend/ocsinventory_backend/settings.py /opt/ocsinventory-backend-backup/settings.py
     fi
 fi
-
-
-
-
-
