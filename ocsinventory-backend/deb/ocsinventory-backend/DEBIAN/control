@@ -7,5 +7,5 @@ Package: ocsinventory-backend
 Version: 3.0.0
 Architecture: all
 Build-Depends: debhelper (>= 7.0.50~)
-Depends: python3, python3-pip, uwsgi, nginx, python3-venv, build-essential, python3-dev, libldap2-dev, libsasl2-dev, slapd, ldap-utils, tox, lcov, valgrind
+Depends: python3, python3-pip, uwsgi, nginx, python3-venv, build-essential, python3-dev, ldap-utils, tox, lcov, valgrind, uwsgi-plugin-python3
 Description: OCS Inventory Backend API
