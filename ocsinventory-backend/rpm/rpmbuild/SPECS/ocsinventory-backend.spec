@@ -18,7 +18,7 @@ Source1:        ocsbackend
 Source2:        ocsbackend.ini
 
 BuildRoot:      %{buildroot}
-Requires:       python3, python3-pip, uwsgi, nginx, python3-venv, build-essential, python3-dev, ldap-utils, tox, lcov, valgrind, uwsgi-plugin-python3
+Requires:       epel-release, python3, python3-pip, uwsgi, nginx, python3-virtualenv, python3-devel, openldap-devel, uwsgi-plugin-python3
 AutoReqProv:    no
 
 %description
@@ -27,23 +27,26 @@ OCS Inventory Backend API
 %prep
 %setup -q -c -n %{name}-%{version}
 
+%build
+# Nothing to build
+
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}/opt/ocsinventory-backend
-cp -r * %{buildroot}/opt/ocsinventory-backend
+mkdir -p %{buildroot}/opt/
+cp -r * %{buildroot}/opt/
 
 # Copy NGINX and UWSGI configuration files
 mkdir -p %{buildroot}/etc/nginx/sites-available
-cp etc/nginx/sites-available/ocsbackend %{buildroot}/etc/nginx/sites-available/ocsbackend
+cp %{SOURCE1} %{buildroot}/etc/nginx/sites-available/ocsbackend
 
 mkdir -p %{buildroot}/etc/uwsgi/apps-available
-cp etc/uwsgi/apps-available/ocsbackend.ini %{buildroot}/etc/uwsgi/apps-available/ocsbackend.ini
+cp %{SOURCE2} %{buildroot}/etc/uwsgi/apps-available/ocsbackend.ini
 
 %clean
 rm -rf %{buildroot}
 
 %files
-%defattr(644, apache, apache, 755)
+%defattr(644, nginx, nginx, 755)
 /opt/ocsinventory-backend
 /etc/nginx/sites-available/ocsbackend
 /etc/uwsgi/apps-available/ocsbackend.ini
@@ -117,7 +120,7 @@ source /opt/ocsinventory-backend/venv/bin/activate
 python3 /opt/ocsinventory-backend/manage.py migrate
 deactivate
 
-chown -R www-data:www-data /opt/ocsinventory-backend/
+chown -R nginx:nginx /opt/ocsinventory-backend/
 chmod -R 755 /opt/ocsinventory-backend/logs
 
 systemctl restart uwsgi
@@ -129,5 +132,3 @@ if [ $UPDATE -eq 1 ]; then
 fi
 
 echo "Post-installation script completed successfully. Please edit nginx configuration server_name to match your domain name and restart nginx service. Additional database configuration may be required in /opt/ocsinventory-backend/ocsinventory_backend/settings.py."
-
-
