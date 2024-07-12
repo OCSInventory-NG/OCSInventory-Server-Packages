@@ -14,8 +14,9 @@ License:        GPLv2
 URL:            https://www.ocsinventory-ng.org/
 
 Source0:        %{name}-%{version}.tar.gz
-Source1:        ocsbackend
+Source1:        ocsbackend.conf
 Source2:        ocsbackend.ini
+Source3:        ocsbackend.service
 
 BuildRoot:      %{buildroot}
 Requires:       epel-release, python3, python3-pip, uwsgi, nginx, python3-virtualenv, python3-devel, openldap-devel, uwsgi-plugin-python3
@@ -36,11 +37,13 @@ mkdir -p %{buildroot}/opt/
 cp -r * %{buildroot}/opt/
 
 # Copy NGINX and UWSGI configuration files
-mkdir -p %{buildroot}/etc/nginx/sites-available
-cp %{SOURCE1} %{buildroot}/etc/nginx/sites-available/ocsbackend
+mkdir -p %{buildroot}/etc/nginx/conf.d/
+cp %{SOURCE1} %{buildroot}/etc/nginx/conf.d/ocsbackend.conf
 
-mkdir -p %{buildroot}/etc/uwsgi/apps-available
-cp %{SOURCE2} %{buildroot}/etc/uwsgi/apps-available/ocsbackend.ini
+mkdir -p %{buildroot}/etc/uwsgi.d/
+cp %{SOURCE2} %{buildroot}/etc/uwsgi.d/ocsbackend.ini
+
+cp %{SOURCE3} %{buildroot}/etc/systemd/system/ocsbackend.service
 
 %clean
 rm -rf %{buildroot}
@@ -48,10 +51,10 @@ rm -rf %{buildroot}
 %files
 %defattr(644, nginx, nginx, 755)
 /opt/ocsinventory-backend
-/etc/nginx/sites-available/ocsbackend
-/etc/uwsgi/apps-available/ocsbackend.ini
-%config(noreplace) %{_sysconfdir}/nginx/sites-available/ocsbackend
-%config(noreplace) %{_sysconfdir}/uwsgi/apps-available/ocsbackend.ini
+/etc/nginx/conf.d/ocsbackend.conf
+/etc/uwsgi.d/ocsbackend.ini
+%config(noreplace) %{_sysconfdir}/nginx/conf.d/ocsbackend.conf
+%config(noreplace) %{_sysconfdir}/uwsgi.d/ocsbackend.ini
 
 %pre
 if [ -d /opt/ocsinventory-backend ]; then
@@ -66,11 +69,11 @@ if [ $UPDATE -eq 1 ]; then
     echo "Backing up existing installation ..."
     mkdir -p /opt/ocsinventory-backend-backup
 
-    if [ -f /etc/nginx/sites-available/ocsinventory-backend ]; then
-        cp /etc/nginx/sites-available/ocsinventory-backend /opt/ocsinventory-backend-backup/ocsinventory-backend
+    if [ -f /etc/nginx/conf.d/ocsbackend.conf ]; then
+        cp /etc/nginx/conf.d/ocsbackend.conf /opt/ocsinventory-backend-backup/ocsbackend.conf
     fi
-    if [ -f /etc/uwsgi/apps-available/ocsbackend.ini ]; then
-        cp /etc/uwsgi/apps-available/ocsinventory-backend.ini /opt/ocsinventory-backend-backup/ocsinventory-backend.ini
+    if [ -f /etc/uwsgi.d/ocsbackend.ini ]; then
+        cp /etc/uwsgi.d/ocsbackend.ini /opt/ocsinventory-backend-backup/ocsbackend.ini
     fi
     if [ -f /opt/ocsinventory-backend/ocsinventory_backend/settings.py ]; then
         cp /opt/ocsinventory-backend/ocsinventory_backend/settings.py /opt/ocsinventory-backend-backup/settings.py
@@ -99,20 +102,12 @@ fi
 
 if [ $UPDATE -eq 1 ]; then
     echo "Restoring Nginx and UWSGI configuration ..."
-    if [ -f /opt/ocsinventory-backend-backup/ocsinventory-backend.ini ]; then
-        cp /opt/ocsinventory-backend-backup/ocsinventory-backend.ini /etc/uwsgi/apps-available/ocsinventory-backend.ini
+    if [ -f /opt/ocsinventory-backend-backup/ocsbackend.ini ]; then
+        cp /opt/ocsinventory-backend-backup/ocsbackend.ini /etc/uwsgi.d/ocsbackend.ini
     fi
-    if [ -f /opt/ocsinventory-backend-backup/ocsinventory-backend ]; then
-        cp /opt/ocsinventory-backend-backup/ocsinventory-backend /etc/nginx/sites-available/ocsbackend
+    if [ -f /opt/ocsinventory-backend-backup/ocsbackend.conf ]; then
+        cp /opt/ocsinventory-backend-backup/ocsbackend.conf /etc/nginx/conf.d/ocsbackend.conf
     fi
-fi
-
-if [ ! -L /etc/nginx/sites-enabled/ocsbackend ]; then
-    ln -s /etc/nginx/sites-available/ocsbackend /etc/nginx/sites-enabled/
-fi
-
-if [ ! -L /etc/uwsgi/apps-enabled/ocsbackend.ini ]; then
-    ln -s /etc/uwsgi/apps-available/ocsbackend.ini /etc/uwsgi/apps-enabled/
 fi
 
 echo "Running database migrations ..."
