@@ -7,7 +7,7 @@ User=nginx
 Group=nginx
 WorkingDirectory=/opt/ocsinventory-backend
 Environment="PATH=/opt/ocsinventory-backend/venv/bin"
-ExecStart=/usr/sbin/uwsgi --ini /etc/uwsgi.d/ocsbackend.ini
+ExecStart=/usr/sbin/uwsgi --ini /etc/uwsgi.d/ocsinventory-backend.ini
 
 [Install]
 WantedBy=multi-user.target
