@@ -21,7 +21,7 @@ if [ $UPDATE -eq 1 ]; then
     if [ -f /etc/nginx/sites-available/ocsinventory-backend ]; then
         cp /etc/nginx/sites-available/ocsinventory-backend /opt/ocsinventory-backend-backup/ocsinventory-backend
     fi
-    if [ -f /etc/uwsgi/apps-available/ocsbackend.ini ]; then
+    if [ -f /etc/uwsgi/apps-available/ocsinventory-backend.ini ]; then
         cp /etc/uwsgi/apps-available/ocsinventory-backend.ini /opt/ocsinventory-backend-backup/ocsinventory-backend.ini
     fi
     # backup settings.py
