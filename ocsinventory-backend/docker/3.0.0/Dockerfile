@@ -12,13 +12,9 @@ WORKDIR /opt/${REPO}
 RUN apt-get update && apt-get install -y \
     uwsgi \
     uwsgi-plugin-python3 \
-    build-essential \
-    gcc \
-    python3-dev \
-    ldap-utils \
-    tox \
-    lcov \
-    valgrind \
+    build-essential python3-dev \
+    libldap2-dev libsasl2-dev slapd ldap-utils tox \
+    lcov valgrind \
     && rm -rf /var/lib/apt/lists/*
 
 
@@ -26,10 +22,7 @@ COPY files/${REPO}-${VERSION}.tar.gz /opt/
 RUN tar -xzvf /opt/${REPO}-${VERSION}.tar.gz -C /opt/${REPO} --strip-components=1
 
 # virtualenv and python deps
-RUN python3 -m venv venv \
-    && . /opt/${REPO}/venv/bin/activate \
-    && pip install --upgrade pip \
-    && pip install -r /opt/${REPO}/requirements.txt
+RUN pip install -r /opt/${REPO}/requirements.txt
 
 COPY files/uwsgi/ocsinventory-backend.ini /etc/uwsgi/apps-available/
 
@@ -41,4 +34,4 @@ EXPOSE 80
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-CMD ["/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
