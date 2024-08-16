@@ -6,7 +6,7 @@ services:
     container_name: ocsinventory-backend
     restart: always
     volumes:
-      - ocsinventory-backend:/opt/ocsinventory-backend
+      - ocsinventory-backend:/usr/share/ocsinventory-backend
       - ocsinventory-backend-socket:/var/run/ocsinventory-backend
     expose:
       - "8000"

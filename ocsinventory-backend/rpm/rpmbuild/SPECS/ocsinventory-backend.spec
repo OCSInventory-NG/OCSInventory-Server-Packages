@@ -33,8 +33,8 @@ OCS Inventory Backend API
 
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}/opt/
-cp -r * %{buildroot}/opt/
+mkdir -p %{buildroot}/usr/share/
+cp -r * %{buildroot}/usr/share/
 
 # Copy NGINX and UWSGI configuration files
 mkdir -p %{buildroot}/etc/nginx/conf.d/
@@ -54,14 +54,14 @@ rm -rf %{buildroot}
 
 %files
 %defattr(644, nginx, nginx, 755)
-/opt/ocsinventory-backend
+/usr/share/ocsinventory-backend
 %config(noreplace) %{_sysconfdir}/nginx/conf.d/ocsinventory-backend.conf
 %config(noreplace) %{_sysconfdir}/uwsgi.d/ocsinventory-backend.ini
 %{_sysconfdir}/systemd/system/ocsinventory-backend.service
 %attr(755, nginx, nginx) /var/log/ocsinventory-backend
 
 %pre
-if [ -d /opt/ocsinventory-backend ]; then
+if [ -d /usr/share/ocsinventory-backend ]; then
     echo "Existing installation detected, updating OCS Inventory Backend ..."
 else
     echo "New installation detected, installing OCS Inventory Backend ..."
@@ -70,24 +70,24 @@ fi
 %post
 echo "Launching post-installation script ..."
 
-if [ ! -d "/opt/ocsinventory-backend/venv" ]; then
+if [ ! -d "/usr/share/ocsinventory-backend/venv" ]; then
     echo "Creating virtual environment ..."
-    python3 -m venv /opt/ocsinventory-backend/venv
+    python3 -m venv /usr/share/ocsinventory-backend/venv
 fi
 
 echo "Activating virtual environment ..."
-source /opt/ocsinventory-backend/venv/bin/activate
+source /usr/share/ocsinventory-backend/venv/bin/activate
 echo "Installing requirements ..."
-pip3 install -r /opt/ocsinventory-backend/requirements.txt
+pip3 install -r /usr/share/ocsinventory-backend/requirements.txt
 deactivate
 
 echo "Running database migrations ..."
-source /opt/ocsinventory-backend/venv/bin/activate
-python3 /opt/ocsinventory-backend/manage.py migrate
+source /usr/share/ocsinventory-backend/venv/bin/activate
+python3 /usr/share/ocsinventory-backend/manage.py migrate
 deactivate
 
-chown -R nginx:nginx /opt/ocsinventory-backend/
-chmod -R 755 /opt/ocsinventory-backend/logs
+chown -R nginx:nginx /usr/share/ocsinventory-backend/
+chmod -R 755 /usr/share/ocsinventory-backend/logs
 
 echo "Restarting services ..."
 systemctl restart uwsgi
@@ -97,4 +97,4 @@ systemctl daemon-reload
 systemctl enable ocsinventory-backend.service
 systemctl start ocsinventory-backend.service
 
-echo "Post-installation script completed successfully. Additional database configuration may be required in /opt/ocsinventory-backend/ocsinventory_backend/settings.py."
+echo "Post-installation script completed successfully. Additional database configuration may be required in /usr/share/ocsinventory-backend/ocsinventory_backend/settings.py."

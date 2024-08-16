@@ -6,7 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ARG REPO="ocsinventory-backend"
 ARG VERSION=3.0.0
 
-WORKDIR /opt/${REPO}
+WORKDIR /usr/share/${REPO}
 
 # system dependencies
 RUN apt-get update && apt-get install -y \
@@ -18,11 +18,11 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 
-COPY files/${REPO}-${VERSION}.tar.gz /opt/
-RUN tar -xzvf /opt/${REPO}-${VERSION}.tar.gz -C /opt/${REPO} --strip-components=1
+COPY files/${REPO}-${VERSION}.tar.gz /usr/share/
+RUN tar -xzvf /usr/share/${REPO}-${VERSION}.tar.gz -C /usr/share/${REPO} --strip-components=1
 
 # virtualenv and python deps
-RUN pip install -r /opt/${REPO}/requirements.txt
+RUN pip install -r /usr/share/${REPO}/requirements.txt
 
 COPY files/uwsgi/ocsinventory-backend.ini /etc/uwsgi/apps-available/
 

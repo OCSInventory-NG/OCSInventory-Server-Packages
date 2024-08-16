@@ -4,24 +4,24 @@ set -e
 echo "Launching post-installation script ..."
 
 # create virtual environment if it does not exist yet
-if [ ! -d "/opt/ocsinventory-backend/venv" ]; then
+if [ ! -d "/usr/share/ocsinventory-backend/venv" ]; then
     echo "Creating virtual environment ..."
-    python3 -m venv /opt/ocsinventory-backend/venv
+    python3 -m venv /usr/share/ocsinventory-backend/venv
 fi
 
 echo "Activating virtual environment ..."
 # Activate virtual environment
-source /opt/ocsinventory-backend/venv/bin/activate
+source /usr/share/ocsinventory-backend/venv/bin/activate
 
 echo "Installing requirements ..."
 # Install requirements
-pip3 install -r /opt/ocsinventory-backend/requirements.txt
+pip3 install -r /usr/share/ocsinventory-backend/requirements.txt
 
 # Deactivate virtual environment
 deactivate
 
 # if there is a backup directory, restore the configuration, else cp the configuration
-if [ -d "/opt/ocsinventory-backend-backup" ]; then
+if [ -d "/usr/share/ocsinventory-backend-backup" ]; then
     UPDATE=1
 else
     UPDATE=0
@@ -30,13 +30,13 @@ fi
 if [ $UPDATE -eq 1 ]; then
     echo "Restoring Nginx and UWSGI configuration ..."
     # restore UWSGI configuration
-    if [ -f /opt/ocsinventory-backend-backup/ocsinventory-backend.ini ]; then
-        cp /opt/ocsinventory-backend-backup/ocsinventory-backend.ini /etc/uwsgi/apps-available/ocsinventory-backend.ini
+    if [ -f /usr/share/ocsinventory-backend-backup/ocsinventory-backend.ini ]; then
+        cp /usr/share/ocsinventory-backend-backup/ocsinventory-backend.ini /etc/uwsgi/apps-available/ocsinventory-backend.ini
     fi
 
     # restore NGINX configuration
-    if [ -f /opt/ocsinventory-backend-backup/ocsinventory-backend ]; then
-        cp /opt/ocsinventory-backend-backup/ocsinventory-backend /etc/nginx/sites-available/ocsinventory-backend
+    if [ -f /usr/share/ocsinventory-backend-backup/ocsinventory-backend ]; then
+        cp /usr/share/ocsinventory-backend-backup/ocsinventory-backend /etc/nginx/sites-available/ocsinventory-backend
     fi
 fi
 
@@ -52,14 +52,14 @@ fi
 
 # run migrate 
 echo "Running database migrations ..."
-source /opt/ocsinventory-backend/venv/bin/activate
-python3 /opt/ocsinventory-backend/manage.py migrate
+source /usr/share/ocsinventory-backend/venv/bin/activate
+python3 /usr/share/ocsinventory-backend/manage.py migrate
 deactivate
 
 echo "Setting ownership and permissions ..."
 # change ownership and permissions on logs directory
-chown -R www-data:www-data /opt/ocsinventory-backend/
-chmod -R 755 /opt/ocsinventory-backend/logs
+chown -R www-data:www-data /usr/share/ocsinventory-backend/
+chmod -R 755 /usr/share/ocsinventory-backend/logs
 
 echo "Restarting services ..."
 # restart services
@@ -68,9 +68,9 @@ systemctl restart nginx
 
 if [ $UPDATE -eq 1 ]; then
     echo "Removing backup directory ..."
-    rm -rf /opt/ocsinventory-backend-backup
+    rm -rf /usr/share/ocsinventory-backend-backup
 fi
 
 echo "Post-installation script completed successfully, update or installation completed.
 Please edit nginx configuration server_name to match your domain name and restart nginx service.
-Additonnal database configuration may be required in /opt/ocsinventory-backend/ocsinventory_backend/settings.py."
+Additonnal database configuration may be required in /usr/share/ocsinventory-backend/ocsinventory_backend/settings.py."
