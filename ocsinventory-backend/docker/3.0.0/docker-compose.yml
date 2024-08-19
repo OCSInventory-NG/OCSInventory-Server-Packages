@@ -6,7 +6,7 @@ services:
     container_name: ocsinventory-backend
     restart: always
     volumes:
-      - ocsinventory-backend:/usr/share/ocsinventory-backend
+      - ocsinventory-backend:/app
       - ocsinventory-backend-socket:/var/run/ocsinventory-backend
     expose:
       - "8000"
@@ -27,9 +27,21 @@ services:
     networks:
       - ocsinventory-network
 
+  ocsdb:
+    image: postgres:12
+    container_name: ocsinventory-db
+    restart: always
+    environment:
+      POSTGRES_USER: ocsuser
+      POSTGRES_PASSWORD: ocsuser
+      POSTGRES_DB: ocsdb
+    volumes:
+      - ocsinventory-db:/var/lib/postgresql/data
+
 networks:
   ocsinventory-network:
 
 volumes:
   ocsinventory-backend:
   ocsinventory-backend-socket:
+  ocsinventory-db:

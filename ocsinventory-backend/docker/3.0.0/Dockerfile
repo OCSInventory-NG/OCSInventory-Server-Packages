@@ -6,7 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ARG REPO="ocsinventory-backend"
 ARG VERSION=3.0.0
 
-WORKDIR /usr/share/${REPO}
+WORKDIR /app
 
 # system dependencies
 RUN apt-get update && apt-get install -y \
@@ -17,12 +17,16 @@ RUN apt-get update && apt-get install -y \
     lcov valgrind \
     && rm -rf /var/lib/apt/lists/*
 
+# extract source code to /app
+RUN mkdir -p /app
+# copy archive to /app
+COPY files/${REPO}-${VERSION}.tar.gz /app/
 
-COPY files/${REPO}-${VERSION}.tar.gz /usr/share/
-RUN tar -xzvf /usr/share/${REPO}-${VERSION}.tar.gz -C /usr/share/${REPO} --strip-components=1
+# extract archive to  /app/ocsinventory-backend directory
+RUN tar -xzf /app/${REPO}-${VERSION}.tar.gz -C /app
 
 # virtualenv and python deps
-RUN pip install -r /usr/share/${REPO}/requirements.txt
+RUN pip install -r /app/${REPO}/requirements.txt
 
 COPY files/uwsgi/ocsinventory-backend.ini /etc/uwsgi/apps-available/
 
