@@ -1,7 +1,8 @@
-FROM python:3.9-slim
+FROM tiangolo/uwsgi-nginx:python3.11
 
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONDONTWRITEBYTECODE 1
+ENV DEBIAN_FRONTEND noninteractive
 
 ARG REPO="ocsinventory-backend"
 ARG VERSION=3.0.0
@@ -17,16 +18,16 @@ RUN apt-get update && apt-get install -y \
     lcov valgrind \
     && rm -rf /var/lib/apt/lists/*
 
+RUN useradd ocsbackend --home /app
+
 # extract source code to /app
-RUN mkdir -p /app
+RUN rm -rf /app/*
+
 # copy archive to /app
 COPY files/${REPO}-${VERSION}.tar.gz /app/
 
 # extract archive to  /app/ocsinventory-backend directory
 RUN tar -xzf /app/${REPO}-${VERSION}.tar.gz -C /app
-
-# virtualenv and python deps
-RUN pip install -r /app/${REPO}/requirements.txt
 
 COPY files/uwsgi/ocsinventory-backend.ini /etc/uwsgi/apps-available/
 

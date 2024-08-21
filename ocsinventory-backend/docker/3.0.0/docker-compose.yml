@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   ocsinventory-backend:
     image: ocsinventoryserver-backend:3.0.0
