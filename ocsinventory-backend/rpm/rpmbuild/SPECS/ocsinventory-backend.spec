@@ -16,10 +16,10 @@ URL:            https://www.ocsinventory-ng.org/
 Source0:        %{name}-%{version}.tar.gz
 Source1:        ocsinventory-backend.conf
 Source2:        ocsinventory-backend.ini
-Source3:        ocsinventory-backend.service
 
 BuildRoot:      %{buildroot}
-Requires:       epel-release, python3, python3-pip, uwsgi, nginx, python3-virtualenv, python3-devel, openldap-devel, uwsgi-plugin-python3
+Requires:       epel-release, python3, python3-pip, uwsgi, nginx, python3-virtualenv, python3-devel, openldap-devel, uwsgi-plugin-python3, postgresql-server, postgresql-contrib
+
 AutoReqProv:    no
 
 %description
@@ -43,9 +43,6 @@ cp %{SOURCE1} %{buildroot}/etc/nginx/conf.d/ocsinventory-backend.conf
 mkdir -p %{buildroot}/etc/uwsgi.d/
 cp %{SOURCE2} %{buildroot}/etc/uwsgi.d/ocsinventory-backend.ini
 
-mkdir -p %{buildroot}/etc/systemd/system/
-cp %{SOURCE3} %{buildroot}/etc/systemd/system/ocsinventory-backend.service
-
 # create log directory
 mkdir -p %{buildroot}/var/log/ocsinventory-backend
 
@@ -57,7 +54,6 @@ rm -rf %{buildroot}
 /usr/share/ocsinventory-backend
 %config(noreplace) %{_sysconfdir}/nginx/conf.d/ocsinventory-backend.conf
 %config(noreplace) %{_sysconfdir}/uwsgi.d/ocsinventory-backend.ini
-%{_sysconfdir}/systemd/system/ocsinventory-backend.service
 %attr(755, nginx, nginx) /var/log/ocsinventory-backend
 
 %pre
@@ -70,13 +66,27 @@ fi
 %post
 echo "Launching post-installation script ..."
 
-if [ ! -d "/usr/share/ocsinventory-backend/venv" ]; then
+# postgresql setup
+postgresql-setup initdb
+systemctl start postgresql
+systemctl enable postgresql
+
+DB_NAME="ocsdb"
+DB_USER="ocsuser"
+DB_PASSWORD="ocsuser"
+
+sudo -u postgres psql -c "CREATE DATABASE ${DB_NAME};"
+sudo -u postgres psql -c "CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASSWORD}';"
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};"
+
+# virtual env and requirements
+if [ ! -d "/usr/lib/ocsinventory-backend/venv" ]; then
     echo "Creating virtual environment ..."
-    python3 -m venv /usr/share/ocsinventory-backend/venv
+    python3 -m venv /usr/lib/ocsinventory-backend/venv
 fi
 
 echo "Activating virtual environment ..."
-source /usr/share/ocsinventory-backend/venv/bin/activate
+source /usr/lib/ocsinventory-backend/venv/bin/activate
 echo "Installing requirements ..."
 pip3 install -r /usr/share/ocsinventory-backend/requirements.txt
 deactivate
@@ -89,12 +99,14 @@ deactivate
 chown -R nginx:nginx /usr/share/ocsinventory-backend/
 chmod -R 755 /usr/share/ocsinventory-backend/logs
 
+# create ocsinventory socket directory and set permissions
+mkdir -p /var/run/ocsinventory-backend/
+chmod 755 /var/run/ocsinventory-backend/
+
 echo "Restarting services ..."
 systemctl restart uwsgi
+systemctl enable uwsgi
+
 systemctl restart nginx
-# reload systemd
-systemctl daemon-reload
-systemctl enable ocsinventory-backend.service
-systemctl start ocsinventory-backend.service
 
 echo "Post-installation script completed successfully. Additional database configuration may be required in /usr/share/ocsinventory-backend/ocsinventory_backend/settings.py."
