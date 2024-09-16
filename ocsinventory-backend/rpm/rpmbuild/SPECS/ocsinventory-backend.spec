@@ -68,35 +68,44 @@ echo "Launching post-installation script ..."
 
 # PostgreSQL setup
 if [ ! -f "/var/lib/pgsql/data/PG_VERSION" ]; then
-    echo "Starting PostgreSQL setup ..."
     setenforce 0
+    echo "Starting PostgreSQL setup ..."
     postgresql-setup --initdb --unit postgresql  >> /tmp/pgsetup.log 2>&1
-    sleep 5
-    systemctl start postgresql
-    systemctl enable postgresql
-    systemctl status postgresql
+
+    # update pg_hba.conf to allow local connections
+    echo "Updating pg_hba.conf to allow local connections ..."
+    sed -i 's/peer/md5/' /var/lib/pgsql/data/pg_hba.conf
+    sed -i 's/ident/md5/' /var/lib/pgsql/data/pg_hba.conf
+
+    # start PostgreSQL service
+    su - postgres -c "/usr/bin/pg_ctl -D /var/lib/pgsql/data -l logfile start"
 else
     echo "PostgreSQL is already installed."
 fi
 
-# default credentials
-DB_NAME="ocsdb"
-DB_USER="ocsuser"
-DB_PASSWORD="ocsuser"
-
-
-# check that postgres is running
-if [ "$(systemctl is-active postgresql)" != "active" ]; then
-    echo "PostgreSQL does not appear to be running. Attempting to start PostgreSQL ..."
-    systemctl restart postgresql
-    systemctl status postgresql
+# use su - postgres and pg_ctl status to check if the service is running
+if [ "$(su - postgres -c "/usr/bin/pg_ctl -D /var/lib/pgsql/data status" | grep "server is running")" ]; then
+    echo "PostgreSQL service is running."
+else
+    echo "PostgreSQL service is not running. Attempting to start it ..."
+    su - postgres -c "/usr/bin/pg_ctl -D /var/lib/pgsql/data -l logfile start"
+    su - postgres -c "/usr/bin/pg_ctl -D /var/lib/pgsql/data status"
 fi
 
+# reading credentials from .env file
+if [ -f "/usr/share/ocsinventory-backend/.env" ]; then
+    source /usr/share/ocsinventory-backend/.env
+    echo "Creating PostgreSQL database and user..."
+    runuser -l postgres -c "psql -c \"CREATE DATABASE ${POSTGRES_DB_NAME};\""
+    runuser -l postgres -c "psql -c \"CREATE USER ${POSTGRES_DB_USER} WITH PASSWORD '${POSTGRES_DB_PASSWORD}';\""
+    runuser -l postgres -c "psql -c \"GRANT ALL PRIVILEGES ON DATABASE ${POSTGRES_DB_NAME} TO ${POSTGRES_DB_USER};\""
 
-echo "Creating PostgreSQL database and user..."
-runuser -l postgres -c "psql -c \"CREATE DATABASE ${DB_NAME};\""
-runuser -l postgres -c "psql -c \"CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASSWORD}';\""
-runuser -l postgres -c "psql -c \"GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};\""
+    # generating secret for Django 
+    echo "Generating Django secret key ..."
+    SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(50))")
+    # replace SECRET_KEY in .env file
+    sed -i "s/SECRET_KEY=.*/SECRET_KEY='${SECRET_KEY}'/" /usr/share/ocsinventory-backend/.env
+fi
 
 # venv and requirements
 if [ ! -d "/usr/lib/ocsinventory-backend/venv" ]; then
