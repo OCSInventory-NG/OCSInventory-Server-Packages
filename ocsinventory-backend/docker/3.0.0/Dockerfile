@@ -18,8 +18,6 @@ RUN apt-get update && apt-get install -y \
     lcov valgrind \
     && rm -rf /var/lib/apt/lists/*
 
-RUN useradd ocsbackend --home /app
-
 # extract source code to /app
 RUN rm -rf /app/*
 
@@ -29,14 +27,40 @@ COPY files/${REPO}-${VERSION}.tar.gz /app/
 # extract archive to  /app/ocsinventory-backend directory
 RUN tar -xzf /app/${REPO}-${VERSION}.tar.gz -C /app
 
-COPY files/uwsgi/ocsinventory-backend.ini /etc/uwsgi/apps-available/
+# ocsbackend user and permissions
+RUN useradd ocsbackend --home /app --shell /bin/bash 
+RUN chown -R ocsbackend:ocsbackend /app
 
+# create the venv
+USER ocsbackend
+RUN python3 -m venv /app/ocs-venv
+
+# dependencies
+RUN /app/ocs-venv/bin/pip install --upgrade pip \
+    && /app/ocs-venv/bin/pip install -r /app/ocsinventory-backend/requirements.txt
+
+USER root
+
+COPY files/uwsgi/uwsgi.ini /app/
+RUN chown -R ocsbackend:ocsbackend /app \
+    && chmod 644 /app/uwsgi.ini
+
+# log directory and permissions
 RUN mkdir -p /var/log/ocsinventory-backend \
-    && chmod 777 /var/log/ocsinventory-backend
+    && chown -R ocsbackend:ocsbackend /var/log/ocsinventory-backend \
+    && chmod 755 /var/log/ocsinventory-backend
 
-EXPOSE 80
+# Socket setup
+RUN mkdir -p /var/run/ocsinventory-backend \
+    && chown -R ocsbackend:ocsbackend /var/run/ocsinventory-backend \
+    && chmod 755 /var/run/ocsinventory-backend
+
+
+EXPOSE 8000
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+
+USER ocsbackend
 
 ENTRYPOINT ["/entrypoint.sh"]
