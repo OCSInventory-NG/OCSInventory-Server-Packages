@@ -66,20 +66,39 @@ fi
 %post
 echo "Launching post-installation script ..."
 
-# postgresql setup
-postgresql-setup initdb
-systemctl start postgresql
-systemctl enable postgresql
+# PostgreSQL setup
+if [ ! -f "/var/lib/pgsql/data/PG_VERSION" ]; then
+    echo "Starting PostgreSQL setup ..."
+    setenforce 0
+    postgresql-setup --initdb --unit postgresql  >> /tmp/pgsetup.log 2>&1
+    sleep 5
+    systemctl start postgresql
+    systemctl enable postgresql
+    systemctl status postgresql
+else
+    echo "PostgreSQL is already installed."
+fi
 
+# default credentials
 DB_NAME="ocsdb"
 DB_USER="ocsuser"
 DB_PASSWORD="ocsuser"
 
-sudo -u postgres psql -c "CREATE DATABASE ${DB_NAME};"
-sudo -u postgres psql -c "CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASSWORD}';"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};"
 
-# virtual env and requirements
+# check that postgres is running
+if [ "$(systemctl is-active postgresql)" != "active" ]; then
+    echo "PostgreSQL does not appear to be running. Attempting to start PostgreSQL ..."
+    systemctl restart postgresql
+    systemctl status postgresql
+fi
+
+
+echo "Creating PostgreSQL database and user..."
+runuser -l postgres -c "psql -c \"CREATE DATABASE ${DB_NAME};\""
+runuser -l postgres -c "psql -c \"CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASSWORD}';\""
+runuser -l postgres -c "psql -c \"GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};\""
+
+# venv and requirements
 if [ ! -d "/usr/lib/ocsinventory-backend/venv" ]; then
     echo "Creating virtual environment ..."
     python3 -m venv /usr/lib/ocsinventory-backend/venv
@@ -89,24 +108,24 @@ echo "Activating virtual environment ..."
 source /usr/lib/ocsinventory-backend/venv/bin/activate
 echo "Installing requirements ..."
 pip3 install -r /usr/share/ocsinventory-backend/requirements.txt
-deactivate
 
 echo "Running database migrations ..."
-source /usr/share/ocsinventory-backend/venv/bin/activate
 python3 /usr/share/ocsinventory-backend/manage.py migrate
 deactivate
 
 chown -R nginx:nginx /usr/share/ocsinventory-backend/
 chmod -R 755 /usr/share/ocsinventory-backend/logs
 
-# create ocsinventory socket directory and set permissions
+# ocsinventory socket dir and permissions
 mkdir -p /var/run/ocsinventory-backend/
+chown nginx:nginx /var/run/ocsinventory-backend/
 chmod 755 /var/run/ocsinventory-backend/
 
-echo "Restarting services ..."
+
+echo "Starting uWSGI service ..."
 systemctl restart uwsgi
 systemctl enable uwsgi
 
 systemctl restart nginx
 
-echo "Post-installation script completed successfully. Additional database configuration may be required in /usr/share/ocsinventory-backend/ocsinventory_backend/settings.py."
+echo "Post-installation script completed successfully."
