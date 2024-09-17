@@ -74,7 +74,6 @@ if [ ! -f "/var/lib/pgsql/data/PG_VERSION" ]; then
 
     # update pg_hba.conf to allow local connections
     echo "Updating pg_hba.conf to allow local connections ..."
-    sed -i 's/peer/md5/' /var/lib/pgsql/data/pg_hba.conf
     sed -i 's/ident/md5/' /var/lib/pgsql/data/pg_hba.conf
 
     # start PostgreSQL service
@@ -100,11 +99,16 @@ if [ -f "/usr/share/ocsinventory-backend/.env" ]; then
     runuser -l postgres -c "psql -c \"CREATE USER ${POSTGRES_DB_USER} WITH PASSWORD '${POSTGRES_DB_PASSWORD}';\""
     runuser -l postgres -c "psql -c \"GRANT ALL PRIVILEGES ON DATABASE ${POSTGRES_DB_NAME} TO ${POSTGRES_DB_USER};\""
 
+    sed -i 's/peer/md5/' /var/lib/pgsql/data/pg_hba.conf
+    su - postgres -c "/usr/bin/pg_ctl -D /var/lib/pgsql/data -l logfile restart"
+    
     # generating secret for Django 
     echo "Generating Django secret key ..."
     SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(50))")
     # replace SECRET_KEY in .env file
     sed -i "s/SECRET_KEY=.*/SECRET_KEY='${SECRET_KEY}'/" /usr/share/ocsinventory-backend/.env
+else
+    echo "Credentials environment file not found"
 fi
 
 # venv and requirements
@@ -138,3 +142,7 @@ systemctl enable uwsgi
 systemctl restart nginx
 
 echo "Post-installation script completed successfully."
+
+%changelog
+* Fri Sep 17 2024 Lea Droguet <lea.droguet@ocsinventory-ng.org> - 3.0.0-1
+- Initial RPM
