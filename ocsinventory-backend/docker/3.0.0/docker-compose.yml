@@ -6,12 +6,16 @@ services:
     volumes:
       - ocsinventory-backend:/app
       - ocsinventory-backend-socket:/var/run/ocsinventory-backend
+    links:
+      - ocsinventory-db
+    depends_on:
+      - ocsinventory-db 
     expose:
-      - "8000"
+      - 8000
     networks:
       - ocsinventory-network
 
-  ocsproxy:
+  ocsinventory-proxy:
     image: nginx
     container_name: ocsinventory-proxy
     restart: always
@@ -19,14 +23,15 @@ services:
       - ./files/nginx/ocsinventory-backend.conf:/etc/nginx/conf.d/default.conf
       - ocsinventory-backend-socket:/var/run/ocsinventory-backend
     ports:
-      - "80:80"
+      - 80:80
+      - 443:443
     depends_on:
       - ocsinventory-backend
     networks:
       - ocsinventory-network
 
-  ocsdb:
-    image: postgres:12
+  ocsinventory-db:
+    image: postgres:13
     container_name: ocsinventory-db
     restart: always
     environment:
@@ -35,6 +40,8 @@ services:
       POSTGRES_DB: ocsdb
     volumes:
       - ocsinventory-db:/var/lib/postgresql/data
+    networks:
+      - ocsinventory-network
 
 networks:
   ocsinventory-network:
