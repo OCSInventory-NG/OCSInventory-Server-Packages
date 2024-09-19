@@ -6,6 +6,34 @@ Packages repository for OCS Inventory Rework.
 
 ## Structure
 
+- ocsinventory-backend
+    - rpm
+        - sources
+            - .env
+            - ocsinventory-backend.conf
+            - ocsinventory-backend.ini
+            - ocsinventory-backend-X.X.X.tar.gz
+        - specs
+            - ocsinventory-backend.spec
+    - deb
+        - ocsinventory-backend
+            - DEBIAN
+            - etc/nginx/sites-available
+                - ocsinventory-backend
+            - etc/uwsgi/apps-available
+                - ocsinventory-backend.ini
+            - usr/share/ocsinventory-backend
+    - docker
+        - X.X.X
+            - files
+                - nginx
+                    - ocsinventory-backend.conf
+                - uwsgi
+                    - uwsgi.ini
+                - ocsinventory-backend-X.X.X.tar.gz
+            - docker-compose.yml
+            - Dockerfile
+            - entrypoint.sh
 - ocsinventory-frontend
     - rpm
         - sources
@@ -17,12 +45,15 @@ Packages repository for OCS Inventory Rework.
         - ocsinventory-frontend
             - DEBIAN
             - etc/apache2/sites-available
+                - ocsinventory-frontend.conf
             - usr/share/ocsinventory-frontend
     - docker
         - X.X.X
             - files
                 - ocsinventory-frontend.conf
                 - ocsinventory-frontend-X.X.X.tar.gz
+            - docker-compose.yml
+            - Dockerfile
 
 ## Build .deb
 
