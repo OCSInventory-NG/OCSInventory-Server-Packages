@@ -45,12 +45,6 @@ if [ ! -L /etc/uwsgi/apps-enabled/ocsinventory-backend.ini ]; then
     ln -s /etc/uwsgi/apps-available/ocsinventory-backend.ini /etc/uwsgi/apps-enabled/
 fi
 
-# run migrate 
-echo "Running database migrations ..."
-source /usr/share/ocsinventory-backend/venv/bin/activate
-python3 /usr/share/ocsinventory-backend/manage.py migrate
-deactivate
-
 # PostgreSQL setup
 echo "Setting up PostgreSQL database and user ..."
 DB_NAME="ocsdb"
@@ -64,6 +58,16 @@ sudo -u postgres psql -c "CREATE DATABASE $DB_NAME;"
 sudo -u postgres psql -c "CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASSWORD}';"
 sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};"
 
+echo "Generating Django secret key ..."
+SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(50))")
+# replace SECRET_KEY in .env file
+sed -i "s/SECRET_KEY=.*/SECRET_KEY='${SECRET_KEY}'/" /usr/share/ocsinventory-backend/.env
+
+# run migrate 
+echo "Running database migrations ..."
+source /usr/lib/ocsinventory-backend/venv/bin/activate
+python3 /usr/share/ocsinventory-backend/manage.py migrate
+deactivate
 
 echo "Setting ownership and permissions ..."
 # change ownership and permissions on logs directory

@@ -1,0 +1,6 @@
+ocsinventory-backend (2:3.0.0) bullseye; urgency=medium
+
+    * Initial deb package
+
+ -- Léa Droguet <lea.droguet@ocsinventory-ng.org>  Wed, 18 Sep 2024 14:31:10 +0200
+
