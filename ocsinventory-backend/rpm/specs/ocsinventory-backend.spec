@@ -18,7 +18,8 @@ Source1:        ocsinventory-backend.conf
 Source2:        ocsinventory-backend.ini
 
 BuildRoot:      %{buildroot}
-Requires:       epel-release, python3, python3-pip, uwsgi, nginx, python3-virtualenv, python3-devel, openldap-devel, uwsgi-plugin-python3, postgresql-server, postgresql-contrib
+Recommends:     postgresql-server, postgresql-contrib
+Requires:       python3, python3-pip, uwsgi, nginx, python3-virtualenv, python3-devel, openldap-devel, uwsgi-plugin-python3, gcc, openldap-clients, epel-release
 
 AutoReqProv:    no
 
@@ -58,62 +59,64 @@ rm -rf %{buildroot}
 
 %pre
 if [ -d /usr/share/ocsinventory-backend ]; then
-    echo "Existing installation detected, updating OCS Inventory Backend ..."
+    echo "Existing installation detected, updating OCS Inventory Backend"
+    update=1
+    echo $update > /tmp/upade_ocsinventory_backend
 else
-    echo "New installation detected, installing OCS Inventory Backend ..."
+    echo "New installation detected, installing OCS Inventory Backend"
+    update=0
 fi
 
 %post
-echo "Launching post-installation script ..."
+echo "Launching OCS Inventory Backend post-installation script"
 
 # PostgreSQL setup
-if [ ! -f "/var/lib/pgsql/data/PG_VERSION" ]; then
+if rpm -q postgresql-server > /dev/null 2>&1; then
+    echo "Setup PostgreSQL"
     setenforce 0
-    echo "Starting PostgreSQL setup ..."
-    postgresql-setup --initdb --unit postgresql  >> /tmp/pgsetup.log 2>&1
+    sudo -i -u postgres psql -c "SELECT 1" > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo "PostgreSQL not initialized, initializing..."
+        postgresql-setup --initdb --unit postgresql  >> /tmp/pgsetup.log 2>&1
+        if [ $? -eq 0 ]; then
+            echo "PostgreSQL database initialized successfully"
+            # update pg_hba.conf to allow local connections
+            echo "Updating pg_hba.conf to allow local connections"
+            sed -i 's/ident/md5/' /var/lib/pgsql/data/pg_hba.conf
 
-    # update pg_hba.conf to allow local connections
-    echo "Updating pg_hba.conf to allow local connections ..."
-    sed -i 's/ident/md5/' /var/lib/pgsql/data/pg_hba.conf
-
-    # start PostgreSQL service
-    su - postgres -c "/usr/bin/pg_ctl -D /var/lib/pgsql/data -l logfile start"
-else
-    echo "PostgreSQL is already installed."
+            sudo systemctl enable postgresql
+            su - postgres -c "/usr/bin/pg_ctl -D /var/lib/pgsql/data -l logfile start"
+        else
+            echo "PostgreSQL initialization failed"
+            exit 1
+        fi
+    else
+        echo "PostgreSQL is already initialized"
+    fi
 fi
 
-# use su - postgres and pg_ctl status to check if the service is running
+# If PostgreSQL and new OCS Backend installation
 if [ "$(su - postgres -c "/usr/bin/pg_ctl -D /var/lib/pgsql/data status" | grep "server is running")" ]; then
-    echo "PostgreSQL service is running."
-else
-    echo "PostgreSQL service is not running. Attempting to start it ..."
-    su - postgres -c "/usr/bin/pg_ctl -D /var/lib/pgsql/data -l logfile start"
-    su - postgres -c "/usr/bin/pg_ctl -D /var/lib/pgsql/data status"
-fi
-
-# reading credentials from .env file
-if [ -f "/usr/share/ocsinventory-backend/.env" ]; then
+    echo "Setup OCS Inventory Backend database"
+    # Generate dynamic password
+    POSTGRES_DB_PASSWORD=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
+    sed -i "s/POSTGRES_DB_PASSWORD=.*/POSTGRES_DB_PASSWORD='${POSTGRES_DB_PASSWORD}'/" /usr/share/ocsinventory-backend/.env
     source /usr/share/ocsinventory-backend/.env
-    echo "Creating PostgreSQL database and user..."
     runuser -l postgres -c "psql -c \"CREATE DATABASE ${POSTGRES_DB_NAME};\""
     runuser -l postgres -c "psql -c \"CREATE USER ${POSTGRES_DB_USER} WITH PASSWORD '${POSTGRES_DB_PASSWORD}';\""
     runuser -l postgres -c "psql -c \"GRANT ALL PRIVILEGES ON DATABASE ${POSTGRES_DB_NAME} TO ${POSTGRES_DB_USER};\""
 
     sed -i 's/peer/md5/' /var/lib/pgsql/data/pg_hba.conf
     su - postgres -c "/usr/bin/pg_ctl -D /var/lib/pgsql/data -l logfile restart"
-    
-    # generating secret for Django 
-    echo "Generating Django secret key ..."
-    SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(50))")
-    # replace SECRET_KEY in .env file
-    sed -i "s/SECRET_KEY=.*/SECRET_KEY='${SECRET_KEY}'/" /usr/share/ocsinventory-backend/.env
-else
-    echo "Credentials environment file not found"
 fi
 
 # venv and requirements
 if [ ! -d "/usr/lib/ocsinventory-backend/venv" ]; then
-    echo "Creating virtual environment ..."
+    # generating secret for Django 
+    echo "Generating Django secret key..."
+    SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(50))")
+    sed -i "s/SECRET_KEY=.*/SECRET_KEY='${SECRET_KEY}'/" /usr/share/ocsinventory-backend/.env
+    echo "Creating virtual environment..."
     python3 -m venv /usr/lib/ocsinventory-backend/venv
 fi
 
@@ -122,8 +125,13 @@ source /usr/lib/ocsinventory-backend/venv/bin/activate
 echo "Installing requirements ..."
 pip3 install -r /usr/share/ocsinventory-backend/requirements.txt
 
-echo "Running database migrations ..."
-python3 /usr/share/ocsinventory-backend/manage.py migrate
+if [ "$(su - postgres -c "/usr/bin/pg_ctl -D /var/lib/pgsql/data status" | grep "server is running")" ]; then
+    echo "Running database migrations..."
+    python3 /usr/share/ocsinventory-backend/manage.py migrate
+else
+    echo "Database not detected, skip migration."
+fi
+
 deactivate
 
 chown -R nginx:nginx /usr/share/ocsinventory-backend/
@@ -135,13 +143,20 @@ chown nginx:nginx /var/run/ocsinventory-backend/
 chmod 755 /var/run/ocsinventory-backend/
 
 
-echo "Starting uWSGI service ..."
+echo "Starting uWSGI service..."
 systemctl restart uwsgi
 systemctl enable uwsgi
 
 systemctl restart nginx
 
 echo "Post-installation script completed successfully."
+
+%postun
+echo "Clean OCS Inventory Backend files..."
+rm -rf /usr/share/ocsinventory-backend
+rm -rf /usr/lib/ocsinventory-backend
+rm -rf /var/log/ocsinventory-backend
+echo "OCS Inventory Backend successfully uninstalled."
 
 %changelog
 * Fri Sep 17 2024 Lea Droguet <lea.droguet@ocsinventory-ng.org> - 3.0.0-1
