@@ -109,12 +109,12 @@ if [ ! -f /tmp/.ocsenvbackup ]; then
     chown nginx:nginx /var/run/ocsinventory-backend/
     chmod 755 /var/run/ocsinventory-backend/
 
-    echo "Starting uWSGI service..."
-    systemctl restart uwsgi
     systemctl enable uwsgi
-
-    systemctl restart nginx
 fi
+
+echo "Restarting UWSGI and Nginx services..."
+systemctl restart uwsgi
+systemctl restart nginx
 
 echo "OCS Inventory Backend successfully installed."
 
