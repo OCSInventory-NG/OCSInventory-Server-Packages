@@ -86,5 +86,5 @@ mock -r ocs-[elX|fXX] SRPMS/ocsinventory-[backend|frontend|agent]-X.X.X-X.fcXX.s
 ### Commands to build
 
 ```bash
-docker build --pull --rm -f "X.X.X/Dockerfile" -t ocsinventory/[backend|frontend]:X.X.X "X.X.X"
+docker build --pull --rm -f "X.X.X/Dockerfile" -t ocsinventory/ocsinventory-[backend|frontend]:X.X.X "X.X.X"
 ```
