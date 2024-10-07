@@ -1,7 +1,7 @@
 FROM tiangolo/uwsgi-nginx:python3.11
 
-ENV PYTHONUNBUFFERED 1
-ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
 ENV DEBIAN_FRONTEND noninteractive
 
 ARG REPO="ocsinventory-backend"
@@ -11,32 +11,23 @@ WORKDIR /app
 
 # system dependencies
 RUN apt-get update && apt-get install -y \
-    uwsgi \
-    uwsgi-plugin-python3 \
     build-essential python3-dev \
     libldap2-dev libsasl2-dev slapd ldap-utils tox \
     lcov valgrind \
     && rm -rf /var/lib/apt/lists/*
 
 # extract source code to /app
-RUN rm -rf /app/*
-
-# copy archive to /app
 COPY files/${REPO}-${VERSION}.tar.gz /app/
-
-# extract archive to  /app/ocsinventory-backend directory
 RUN tar -xzf /app/${REPO}-${VERSION}.tar.gz -C /app
 
 # ocsbackend user and permissions
-RUN useradd ocsbackend --home /app --shell /bin/bash 
-RUN chown -R ocsbackend:ocsbackend /app
+RUN useradd ocsbackend --home /app --shell /bin/bash \
+    && chown -R ocsbackend:ocsbackend /app
 
 # create the venv
 USER ocsbackend
-RUN python3 -m venv /app/ocs-venv
-
-# dependencies
-RUN /app/ocs-venv/bin/pip install --upgrade pip \
+RUN python3 -m venv /app/ocs-venv \
+    && /app/ocs-venv/bin/pip install --upgrade pip \
     && /app/ocs-venv/bin/pip install -r /app/ocsinventory-backend/requirements.txt
 
 USER root
@@ -55,7 +46,6 @@ RUN mkdir -p /var/run/ocsinventory-backend \
     && chown -R ocsbackend:ocsbackend /var/run/ocsinventory-backend \
     && chmod 755 /var/run/ocsinventory-backend
 
-
 EXPOSE 8000
 
 COPY entrypoint.sh /entrypoint.sh
@@ -64,3 +54,7 @@ RUN chmod +x /entrypoint.sh
 USER ocsbackend
 
 ENTRYPOINT ["/entrypoint.sh"]
+
+CMD ["uwsgi", "--ini", "/app/uwsgi.ini"]
+
+HEALTHCHECK CMD curl --fail http://localhost:8000 || exit 1
