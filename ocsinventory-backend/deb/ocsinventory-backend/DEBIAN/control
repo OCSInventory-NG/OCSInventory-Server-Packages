@@ -21,6 +21,6 @@ Depends: python3,
   tox, 
   lcov, 
   valgrind, 
-  uwsgi-plugin-python3, 
-  postgresql
+  uwsgi-plugin-python3,
+  pkg-config
 Description: OCS Inventory Backend API

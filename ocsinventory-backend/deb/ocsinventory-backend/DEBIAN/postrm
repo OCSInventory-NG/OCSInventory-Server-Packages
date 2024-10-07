@@ -1,0 +1,8 @@
+#!/bin/bash
+set -e
+
+echo "Clean OCS Inventory Backend files..."
+rm -rf /usr/share/ocsinventory-backend
+rm -rf /usr/lib/ocsinventory-backend
+rm -rf /var/log/ocsinventory-backend
+echo "OCS Inventory Backend successfully uninstalled."

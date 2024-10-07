@@ -1,19 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "Launching post-installation script ..."
-
-# create virtual environment if it does not exist yet
-if [ ! -d "/usr/lib/ocsinventory-backend/venv" ]; then
-    echo "Creating virtual environment ..."
-    python3 -m venv /usr/lib/ocsinventory-backend/venv
-fi
-
-echo "Activating virtual environment ..."
-source /usr/lib/ocsinventory-backend/venv/bin/activate
-echo "Installing requirements ..."
-pip3 install -r /usr/share/ocsinventory-backend/requirements.txt
-deactivate
+echo "Launching OCS Inventory Backend post-installation script"
 
 # if there is a backup directory, restore the configuration, else cp the configuration
 if [ -d "/usr/share/ocsinventory-backend-backup" ]; then
@@ -21,6 +9,31 @@ if [ -d "/usr/share/ocsinventory-backend-backup" ]; then
 else
     UPDATE=0
 fi
+
+# venv and requirements
+if [ ! -d "/usr/lib/ocsinventory-backend/venv" ]; then
+    # generating secret for Django 
+    echo "Generating Django secret key..."
+    SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(50))")
+    sed -i "s/SECRET_KEY=.*/SECRET_KEY='${SECRET_KEY}'/" /usr/share/ocsinventory-backend/.env
+    echo "Creating virtual environment..."
+    python3 -m venv /usr/lib/ocsinventory-backend/venv
+fi
+
+echo "Activating virtual environment ..."
+source /usr/lib/ocsinventory-backend/venv/bin/activate
+echo "Installing requirements ..."
+pip3 install -r /usr/share/ocsinventory-backend/requirements.txt
+
+# Check if update
+if [ $UPDATE -eq 1 ]; then
+    echo "OCS Inventory Backend update detected"
+    cp /usr/share/ocsinventory-backend-backup/.env /usr/share/ocsinventory-backend/.env
+    echo "Running database migrations..."
+    python3 /usr/share/ocsinventory-backend/manage.py migrate
+fi
+
+deactivate
 
 if [ $UPDATE -eq 1 ]; then
     echo "Restoring Nginx and UWSGI configuration ..."
@@ -35,55 +48,30 @@ if [ $UPDATE -eq 1 ]; then
     fi
 fi
 
-# enable NGINX configuration
-if [ ! -L /etc/nginx/sites-enabled/ocsinventory-backend ]; then
+if [ $UPDATE -eq 0 ]; then
+    # enable NGINX configuration
     ln -s /etc/nginx/sites-available/ocsinventory-backend /etc/nginx/sites-enabled/
-fi
-
-# enable UWSGI configuration
-if [ ! -L /etc/uwsgi/apps-enabled/ocsinventory-backend.ini ]; then
+    # enable UWSGI configuration
     ln -s /etc/uwsgi/apps-available/ocsinventory-backend.ini /etc/uwsgi/apps-enabled/
 fi
 
-# PostgreSQL setup
-echo "Setting up PostgreSQL database and user ..."
-DB_NAME="ocsdb"
-DB_USER="ocsuser"
-DB_PASSWORD="ocsuser"
-
-# Ensure PostgreSQL service is running
-systemctl start postgresql
-
-sudo -u postgres psql -c "CREATE DATABASE $DB_NAME;"
-sudo -u postgres psql -c "CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASSWORD}';"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};"
-
-echo "Generating Django secret key ..."
-SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(50))")
-# replace SECRET_KEY in .env file
-sed -i "s/SECRET_KEY=.*/SECRET_KEY='${SECRET_KEY}'/" /usr/share/ocsinventory-backend/.env
-
-# run migrate 
-echo "Running database migrations ..."
-source /usr/lib/ocsinventory-backend/venv/bin/activate
-python3 /usr/share/ocsinventory-backend/manage.py migrate
-deactivate
-
-echo "Setting ownership and permissions ..."
 # change ownership and permissions on logs directory
 chown -R www-data:www-data /usr/share/ocsinventory-backend/
 chmod -R 755 /usr/share/ocsinventory-backend/logs
 
-echo "Restarting services ..."
 # restart services
+echo "Restarting UWSGI and Nginx services..."
 systemctl restart uwsgi
 systemctl restart nginx
 
-if [ $UPDATE -eq 1 ]; then
-    echo "Removing backup directory ..."
+echo "OCS Inventory Backend successfully installed."
+
+if [ $UPDATE -eq 0 ]; then
+    echo "================================================================================================================================="
+    echo "=                                                                                                                               ="
+    echo "= Please run the script '/usr/share/ocsinventory-backend/tools/configure-ocsinventory-backend.sh' to configure the application. ="
+    echo "=                                                                                                                               ="
+    echo "================================================================================================================================="
+else
     rm -rf /usr/share/ocsinventory-backend-backup
 fi
-
-echo "Post-installation script completed successfully, update or installation completed.
-Please edit nginx configuration server_name to match your domain name and restart nginx service.
-Additional database configuration may be required in /usr/share/ocsinventory-backend/ocsinventory_backend/settings.py."
