@@ -1,6 +1,6 @@
 services:
   ocsinventory-backend:
-    image: ocsinventoryserver-backend:3.0.0
+    image: ocsinventory/ocsinventory-backend:3.0.0
     container_name: ocsinventory-backend
     restart: always
     volumes:
