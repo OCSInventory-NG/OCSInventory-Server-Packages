@@ -1,0 +1,5 @@
+ocsinventory-backend (2:3.0.0) bullseye; urgency=medium
+
+    * Initial deb package
+
+ -- Charlène Auger <charlene.auger@ocsinventory-ng.org>  Mon, 07 Oct 2024 10:17:10 +0200
