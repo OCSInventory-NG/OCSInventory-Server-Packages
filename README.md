@@ -54,6 +54,19 @@ Packages repository for OCS Inventory Rework.
                 - ocsinventory-frontend-X.X.X.tar.gz
             - docker-compose.yml
             - Dockerfile
+- ocsinventory-server
+    - rpm
+        - specs
+            - ocsinventory-server.spec
+    - deb
+        - ocsinventory-server
+            - DEBIAN
+    - docker
+        - X.X.X
+            - files
+                - nginx
+                    - ocsinventory-backend.conf
+            - docker-compose.yml
 
 ## Build .deb
 
@@ -64,8 +77,8 @@ Packages repository for OCS Inventory Rework.
 ### Commands to build
 
 ```bash
-cd ocsinventory-[backend|frontend|agent]/deb
-dpkg-deb -Zgzip --build ocsinventory-[backend|frontend|agent]
+cd ocsinventory-[backend|frontend|agent|server]/deb
+dpkg-deb -Zgzip --build ocsinventory-[backend|frontend|agent|server]
 ```
 
 ## Build .rpm
@@ -77,8 +90,8 @@ dpkg-deb -Zgzip --build ocsinventory-[backend|frontend|agent]
 ### Commands to build
 
 ```bash
-rpmbuild -bs SPECS/ocsinventory-[backend|frontend|agent].spec
-mock -r ocs-[elX|fXX] SRPMS/ocsinventory-[backend|frontend|agent]-X.X.X-X.fcXX.src.rpm
+rpmbuild -bs SPECS/ocsinventory-[backend|frontend|agent|server].spec
+mock -r ocs-[elX|fXX] SRPMS/ocsinventory-[backend|frontend|agent|server]-X.X.X-X.fcXX.src.rpm
 ```
 
 ## Build docker
@@ -87,4 +100,10 @@ mock -r ocs-[elX|fXX] SRPMS/ocsinventory-[backend|frontend|agent]-X.X.X-X.fcXX.s
 
 ```bash
 docker build --pull --rm -f "X.X.X/Dockerfile" -t ocsinventory/ocsinventory-[backend|frontend]:X.X.X "X.X.X"
+```
+
+## Run docker-compose (server)
+
+```bash
+docker compose -f ocsinventory-server/docker/X.X.X/docker-compose.yml up -d
 ```
