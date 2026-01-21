@@ -1,0 +1,14 @@
+Source: ocsinventory-cli
+Section: ocsinventory
+Priority: optional
+Maintainer: Léa Droguet <lea.droguet@factorfx.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://www.ocsinventory-ng.org/
+Rules-Requires-Root: no
+
+Package: ocsinventory-cli
+Architecture: amd64
+Depends: ${misc:Depends}, ${shlibs:Depends}, libc6, bash, coreutils, util-linux, grep
+Recommends: systemd, openssl, ca-certificates
+Description: OCS Inventory Agent

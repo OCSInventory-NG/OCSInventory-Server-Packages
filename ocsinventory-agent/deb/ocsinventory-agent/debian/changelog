@@ -1,0 +1,6 @@
+ocsinventory-cli (3.0.0) bullseye; urgency=medium
+
+  * Initial deb package
+
+ -- Lea Droguet <lea.droguet@factorfx.com>  Wed, 31 Dec 2025 12:00:00 +0200
+ 
