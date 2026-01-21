@@ -1,0 +1,11 @@
+Package: ocsinventory-cli
+Version: 3.0.0
+Architecture: amd64
+Maintainer: Léa Droguet <lea.droguet@factorfx.com>
+Installed-Size: 4756
+Depends: libc6 (>= 2.17), bash, coreutils, util-linux, grep
+Recommends: systemd, openssl, ca-certificates
+Section: ocsinventory
+Priority: optional
+Homepage: https://www.ocsinventory-ng.org/
+Description: OCS Inventory Agent

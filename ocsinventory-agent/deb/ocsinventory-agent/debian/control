@@ -1,4 +1,4 @@
-Source: ocsinventory-cli
+Source: ocsinventory-agent
 Section: ocsinventory
 Priority: optional
 Maintainer: Léa Droguet <lea.droguet@factorfx.com>
@@ -7,7 +7,7 @@ Standards-Version: 4.6.2
 Homepage: https://www.ocsinventory-ng.org/
 Rules-Requires-Root: no
 
-Package: ocsinventory-cli
+Package: ocsinventory-agent
 Architecture: amd64
 Depends: ${misc:Depends}, ${shlibs:Depends}, libc6, bash, coreutils, util-linux, grep
 Recommends: systemd, openssl, ca-certificates

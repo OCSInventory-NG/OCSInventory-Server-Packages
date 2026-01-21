@@ -10,7 +10,7 @@ debhelper-build-stamp
 *.substvars
 
 # agent specific
-ocsinventory-agent/deb/ocsinventory-agent/debian/ocsinventory-cli
+ocsinventory-agent/deb/ocsinventory-agent/debian/ocsinventory-agent
 ocsinventory-agent/deb/ocsinventory-agent/etc
 ocsinventory-agent/deb/ocsinventory-agent/usr
 ocsinventory-agent/deb/ocsinventory-agent/debian/files

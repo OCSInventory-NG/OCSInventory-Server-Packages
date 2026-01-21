@@ -1,5 +1,5 @@
 %define debug_package %{nil}
-%define name ocsinventory-cli
+%define name ocsinventory-agent
 %define version 3.0.0
 %define release 1
 %define buildroot %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
