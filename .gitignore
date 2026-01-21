@@ -1,1 +1,16 @@
+debhelper-build-stamp
+.debhelper
+*.deb
+*.dsc
+*.build
+*.buildinfo
+*.changes
 *.tar.gz
+*.log
+*.substvars
+
+# agent specific
+ocsinventory-agent/deb/ocsinventory-agent/debian/ocsinventory-cli
+ocsinventory-agent/deb/ocsinventory-agent/etc
+ocsinventory-agent/deb/ocsinventory-agent/usr
+ocsinventory-agent/deb/ocsinventory-agent/debian/files
