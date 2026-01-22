@@ -1,7 +1,15 @@
 #!/bin/sh
 set -e
 
+if [ "$1" = "remove" ]; then
+    rm -f /usr/local/bin/ocsinventory-cli
+    rm -f /usr/bin/ocsinventory-cli
+    rm -f /etc/systemd/system/ocsinventory-agent.service
+    systemctl daemon-reload >/dev/null 2>&1 || true
+fi
+
 if [ "$1" = "purge" ]; then
+    rm -f /usr/local/bin/ocsinventory-cli
     rm -f /usr/bin/ocsinventory-cli
     rm -f /etc/systemd/system/ocsinventory-agent.service
     rm -rf /etc/ocsinventory-agent
