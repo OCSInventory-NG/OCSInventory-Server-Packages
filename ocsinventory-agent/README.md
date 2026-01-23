@@ -9,13 +9,17 @@ Binary name: ocsinventory-cli
 
 - ocsinventory-agent
     - rpm
-        - sources
+        - BUILD
+        - BUILDROOT
+        - RPMS
+        - SOURCES
             - ocsinventory-cli
             - install.sh
             - uninstall.sh
             - ocsinventory-agent.service
-        - specs
+        - SPECS
             - ocsinventory-agent.spec
+        - SRPMS
     - deb
         - ocsinventory-agent
             - debian
@@ -36,10 +40,11 @@ Binary name: ocsinventory-cli
   - `ocsinventory-agent/deb/ocsinventory-agent/usr/share/ocsinventory-agent/ocsinventory-agent.service`
   - `ocsinventory-agent/deb/ocsinventory-agent/etc/ocsinventory-agent/config.json` (defaults)
 - RPM sources:
-  - `ocsinventory-agent/rpm/sources/ocsinventory-cli`
-  - `ocsinventory-agent/rpm/sources/install.sh`
-  - `ocsinventory-agent/rpm/sources/uninstall.sh`
-  - `ocsinventory-agent/rpm/sources/ocsinventory-agent.service`
+  - `ocsinventory-agent/rpm/SOURCES/ocsinventory-cli`
+  - `ocsinventory-agent/rpm/SOURCES/install.sh`
+  - `ocsinventory-agent/rpm/SOURCES/uninstall.sh`
+  - `ocsinventory-agent/rpm/SOURCES/ocsinventory-agent.service`
+  - Spec file in `ocsinventory-agent/rpm/SPECS/ocsinventory-agent.spec`
 
 ## Build .deb
 
@@ -99,7 +104,5 @@ ocsinventory-agent_<upstream-version>_<arch>.deb
 ### Build
 
 ```bash
-cd ocsinventory-agent
-rpmbuild -bb rpm/specs/ocsinventory-agent.spec \
-  --define "_sourcedir $(pwd)/rpm/sources"
+rpmbuild -bb ocsinventory-agent.spec
 ```
