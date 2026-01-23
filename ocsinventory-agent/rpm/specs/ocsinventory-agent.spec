@@ -3,6 +3,7 @@
 %define version 3.0.0
 %define release 1
 %define buildroot %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
+%global __strip /bin/true
 
 Name:           %{name}
 Version:        %{version}
