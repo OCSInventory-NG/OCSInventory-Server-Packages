@@ -1,0 +1,27 @@
+#!/bin/sh
+set -e
+
+if [ -d "/var/lib/ocsinventory-frontend-update" ]
+then
+    echo "Restore ocsinventory-frontend configuration files"
+    if [ -d "/var/lib/ocsinventory-frontend-update/app" ] && [ "$(ls -A /var/lib/ocsinventory-frontend-update/app)" ]; then
+        cp -r /var/lib/ocsinventory-frontend-update/app/* /usr/share/ocsinventory-frontend
+    fi
+    if [ -f "/var/lib/ocsinventory-frontend-update/nginx/ocsinventory-frontend" ]; then
+        cp /var/lib/ocsinventory-frontend-update/nginx/ocsinventory-frontend /etc/nginx/sites-available
+    fi
+fi
+
+echo "Create ocsinventory-frontend log folder"
+mkdir -p /var/log/ocsinventory-frontend
+
+if [ ! -e /etc/nginx/sites-enabled/ocsinventory-frontend ]; then
+    echo "Enable ocsinventory-frontend"
+    ln -s /etc/nginx/sites-available/ocsinventory-frontend /etc/nginx/sites-enabled/
+fi
+echo "Set nginx rights on ocsinventory-frontend"
+chown -R www-data: /usr/share/ocsinventory-frontend
+echo "Restart nginx"
+systemctl restart nginx
+
+exit 0

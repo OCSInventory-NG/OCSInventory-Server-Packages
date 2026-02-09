@@ -1,0 +1,21 @@
+#!/bin/sh
+set -e
+
+if [ -d "/usr/share/ocsinventory-frontend" ]
+then
+    echo "Before update, save ocsinventory-frontend configuration files"
+    mkdir -p /var/lib/ocsinventory-frontend-update/app
+    mkdir -p /var/lib/ocsinventory-frontend-update/nginx
+    if [ -d "/usr/share/ocsinventory-frontend/config" ]; then
+        cp -r /usr/share/ocsinventory-frontend/config /var/lib/ocsinventory-frontend-update/app
+    fi
+    if [ -f "/usr/share/ocsinventory-frontend/.htaccess" ]; then
+        cp /usr/share/ocsinventory-frontend/.htaccess /var/lib/ocsinventory-frontend-update/app
+    fi
+    if [ -f "/etc/nginx/sites-available/ocsinventory-frontend" ]; then
+        cp /etc/nginx/sites-available/ocsinventory-frontend /var/lib/ocsinventory-frontend-update/nginx
+    fi
+    echo "Ocsinventory-frontend configuration files saved"
+fi
+
+exit 0
