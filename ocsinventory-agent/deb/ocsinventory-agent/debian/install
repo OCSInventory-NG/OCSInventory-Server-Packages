@@ -1,0 +1,5 @@
+etc/ocsinventory-agent/config.json etc/ocsinventory-agent/
+usr/share/ocsinventory-agent/install.sh usr/share/ocsinventory-agent/
+usr/share/ocsinventory-agent/uninstall.sh usr/share/ocsinventory-agent/
+usr/share/ocsinventory-agent/ocsinventory-agent.service usr/share/ocsinventory-agent/
+usr/share/ocsinventory-agent/ocsinventory-cli usr/share/ocsinventory-agent/
