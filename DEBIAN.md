@@ -1,6 +1,6 @@
 # Debian build
 
-This quickguide explain how to compile OCS Inventory backend and frontend for debian.
+This quickguide explain how to compile OCS Inventory backend, frontend and agent for debian.
 
 ## Requirements
 
@@ -15,7 +15,8 @@ sudo apt -y install \
   lintian \
   equivs \
   python3-all \
-  gnupg
+  gnupg \
+  python3-setuptools
 ```
 
 A generated GPG key available on the system in the case you want to sign the package
@@ -50,6 +51,7 @@ First, navigate the the package directory :
 ```bash
 cd ocsinventory-backend/deb/ocsinventory-backend # Backend package path
 cd ocsinventory-frontend/deb/ocsinventory-frontend # Frontend package path
+cd ocsinventory-agent/deb/ocsinventory-agent # Agent package path
 ```
 
 In order to build the package and sign it using a GPG key, use : 
@@ -79,6 +81,7 @@ Building the package will output different files in the parent folder.
 ocsinventory-[backend|frontend|agent]_X.X.X.dsc 
 ocsinventory-[backend|frontend|agent]_X.X.X.tar.gz 
 ocsinventory-[backend|frontend|agent]_X.X.X_amd64.buildinfo 
+ocsinventory-[backend|frontend|agent]_X.X.X_amd64.changes 
 ocsinventory-[backend|frontend|agent]_X.X.X_source.buildinfo 
 ocsinventory-[backend|frontend|agent]_X.X.X_source.changes 
 ocsinventory-[backend|frontend|agent]_X.X.X_all.deb 
