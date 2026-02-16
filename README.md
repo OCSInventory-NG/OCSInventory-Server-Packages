@@ -57,6 +57,32 @@ ocsinventory-frontend/
       Dockerfile
 ```
 
+```
+ocsinventory-agent/
+  rpm/
+    BUILD/
+    BUILDROOT/
+    RPMS/
+    SOURCES/
+      ocsinventory-cli
+      install.sh
+      uninstall.sh
+      ocsinventory-agent.service
+    SPECS/
+      ocsinventory-agent.spec
+    SRPMS/
+  deb/
+    ocsinventory-agent/
+      debian/
+      etc/ocsinventory-agent
+        config.json
+      usr/share/ocsinventory-agent/
+        install.sh
+        uninstall.sh
+        ocsinventory-agent.service
+        ocsinventory-cli
+```
+
 ## Build .deb
 
 For debian package creation instructions, see [DEBIAN.md](DEBIAN.md).
