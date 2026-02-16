@@ -28,7 +28,8 @@ RUN useradd ocsbackend --home /app --shell /bin/bash \
 USER ocsbackend
 RUN python3 -m venv /app/ocs-venv \
     && /app/ocs-venv/bin/pip install --upgrade pip \
-    && /app/ocs-venv/bin/pip install -r /app/ocsinventory-backend/requirements.txt
+    && /app/ocs-venv/bin/pip install -r /app/ocsinventory-backend/requirements.txt \
+    && /app/ocs-venv/bin/pip install -r /app/ocsinventory-backend/requirements_psql.txt
 
 USER root
 

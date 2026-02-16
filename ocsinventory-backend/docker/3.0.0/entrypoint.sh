@@ -28,6 +28,11 @@ fi
 # pip3 install -r /app/ocsinventory-backend/requirements.txt
 
 if [ -f "/app/ocsinventory-backend/manage.py" ]; then
+    echo "Make database migrations..."
+    if ! python3 /app/ocsinventory-backend/manage.py makemigrations; then
+        echo "Make migration failed. Exiting."
+        exit 1
+    fi
     echo "Running database migrations..."
     if ! python3 /app/ocsinventory-backend/manage.py migrate; then
         echo "Migration failed. Exiting."
