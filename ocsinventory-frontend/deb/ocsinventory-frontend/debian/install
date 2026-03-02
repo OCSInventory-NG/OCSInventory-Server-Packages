@@ -1,0 +1,2 @@
+usr/share/ocsinventory-frontend/*  usr/share/ocsinventory-frontend/
+etc/nginx/sites-available/ocsinventory-frontend  etc/nginx/sites-available/

@@ -1,0 +1,14 @@
+server {
+    listen 80;
+    server_name _;
+
+    root /usr/share/ocsinventory-frontend;
+    index index.html;
+
+    access_log /var/log/ocsinventory-frontend/access.log;
+    error_log /var/log/ocsinventory-frontend/error.log;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
