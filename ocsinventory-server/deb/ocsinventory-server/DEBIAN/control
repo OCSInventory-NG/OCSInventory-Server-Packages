@@ -1,0 +1,11 @@
+Source: ocsinventory-server
+Section: ocsinventory
+Priority: standard
+Maintainer: Léa Droguet <lea.droguet@factorfx.com>
+Homepage: https://www.ocsinventory-ng.org/
+Package: ocsinventory-server
+Version: 3.0.0
+Architecture: all
+Build-Depends: debhelper (>= 7.0.50~)
+Depends: ocsinventory-backend, ocsinventory-frontend
+Description: Meta package for OCS Inventory server (API and web console)
