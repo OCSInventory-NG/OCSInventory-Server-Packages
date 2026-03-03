@@ -1,0 +1,5 @@
+ocsinventory-server (3.0.0-1) stable; urgency=medium
+
+  * Initial deb package
+
+ -- Noé Poirier <noe.poirier@factorfx.com>  Mon, 02 Mar 2026 17:32:43 +0100
