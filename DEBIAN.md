@@ -1,6 +1,6 @@
 # Debian build
 
-This quickguide explain how to compile OCS Inventory backend, frontend and agent for debian.
+This quickguide explain how to compile OCS Inventory backend, frontend, agent and meta packages for debian.
 
 ## Requirements
 
@@ -23,7 +23,7 @@ A generated GPG key available on the system in the case you want to sign the pac
 
 _Recommended : building package need to be done in a non-root user_
 
-## Deb layout (frontend / backend)
+## Deb layout (frontend / backend / agent)
 
 ```bash
 ocsinventory-xxxx/
@@ -51,6 +51,7 @@ First, navigate to the package directory:
 cd ocsinventory-backend/deb/ocsinventory-backend # Backend package path
 cd ocsinventory-frontend/deb/ocsinventory-frontend # Frontend package path
 cd ocsinventory-agent/deb/ocsinventory-agent # Agent package path
+cd ocsinventory-server/deb/ocsinventory-server # Meta package path
 ```
 
 In order to build the package and sign it using a GPG key, use:
@@ -77,11 +78,11 @@ The -us -ui -uc arguments means:
 Building the package will output different files in the parent folder.
 
 ```bash
-ocsinventory-[backend|frontend|agent]_X.X.X.dsc
-ocsinventory-[backend|frontend|agent]_X.X.X.tar.gz
-ocsinventory-[backend|frontend|agent]_X.X.X_amd64.buildinfo
-ocsinventory-[backend|frontend|agent]_X.X.X_amd64.changes 
-ocsinventory-[backend|frontend|agent]_X.X.X_source.buildinfo
-ocsinventory-[backend|frontend|agent]_X.X.X_source.changes
-ocsinventory-[backend|frontend|agent]_X.X.X_all.deb
+ocsinventory-[backend|frontend|agent|server]_X.X.X.dsc
+ocsinventory-[backend|frontend|agent|server]_X.X.X.tar.gz
+ocsinventory-[backend|frontend|agent|server]_X.X.X_amd64.buildinfo
+ocsinventory-[backend|frontend|agent|server]_X.X.X_amd64.changes 
+ocsinventory-[backend|frontend|agent|server]_X.X.X_source.buildinfo
+ocsinventory-[backend|frontend|agent|server]_X.X.X_source.changes
+ocsinventory-[backend|frontend|agent|server]_X.X.X_all.deb
 ```

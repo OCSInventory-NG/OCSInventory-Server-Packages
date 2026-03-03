@@ -55,17 +55,17 @@ ocsinventory-frontend/
         ocsinventory-frontend-X.X.X.tar.gz
       docker-compose.yml
       Dockerfile
-ocsinventory-server
-  rpm
-    specs
+ocsinventory-server/
+  rpm/
+    specs/
       ocsinventory-server.spec
-  deb
-    ocsinventory-server
-      DEBIAN
-  docker
-    X.X.X
-      files
-        nginx
+  deb/
+    ocsinventory-server/
+      debian/
+  docker/
+    X.X.X/
+      files/
+        nginx/
           ocsinventory-backend.conf
       docker-compose.yml
 ```
