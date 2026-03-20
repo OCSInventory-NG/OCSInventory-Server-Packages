@@ -1,7 +1,7 @@
 FROM ubuntu:latest
 
 ARG REPO="ocsinventory-frontend"
-ARG VERSION=0.1.0
+ARG VERSION=3.0.0
 
 RUN apt update && apt dist-upgrade -y && \
         apt install -y apache2 && \
