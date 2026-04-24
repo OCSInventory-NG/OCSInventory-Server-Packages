@@ -44,7 +44,7 @@ services:
       - ocsinventory-network
 
   ocsinventory-frontend:
-    image: ocsinventory/ocsinventory-frontend:0.1.0
+    image: ocsinventory/ocsinventory-frontend:3.0.0
     container_name: ocsinventory-frontend
     restart: always
     ports:
