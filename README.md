@@ -1,7 +1,5 @@
 # OCS Inventory Server Packages
 
-**WORK IN PROGRESS**
-
 Packages repository for OCS Inventory Rework.
 
 ## Structure
@@ -102,16 +100,7 @@ For debian package creation instructions, see [DEBIAN.md](DEBIAN.md).
 
 ## Build .rpm
 
-### Prerequisite
-
-- rpmdevtools
-
-### Commands to build
-
-```bash
-rpmbuild -bs SPECS/ocsinventory-[backend|frontend|agent|server].spec
-mock -r ocs-[elX|fXX] SRPMS/ocsinventory-[backend|frontend|agent|server]-X.X.X-X.fcXX.src.rpm
-```
+For Red Hat package creation instructions, see [REDHAT.md](REDHAT.md).
 
 ## Build docker
 
