@@ -1,6 +1,6 @@
 %define debug_package %{nil}
 %define name ocsinventory-server
-%define version 3.0.0
+%define version 3.0.0~rc1
 %define release 1
 %define buildroot %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
@@ -38,5 +38,5 @@ rm -rf %{buildroot}
 %doc %{_docdir}/%{name}/README
 
 %changelog
-* Tue Dec 23 2025 Léa Droguet <lea.droguet@factorfx.com> - 3.0.0-1
+* Thu Jun 04 2026 Léa Droguet <lea.droguet@factorfx.com> - 3.0.0~rc1-1
 - Initial RPM

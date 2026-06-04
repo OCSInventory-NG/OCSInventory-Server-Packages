@@ -1,5 +1,7 @@
-ocsinventory-frontend (3:3.0.0-1) stable; urgency=medium
+ocsinventory-frontend (3:3.0.0~rc1-1) stable; urgency=medium
 
     * Initial deb package
 
- -- Charlene Auger <charlene.auger@ocsinventory-ng.org>  Fri, 14 Jun 2024 10:00:00 +0200
+ -- Charlene Auger <charlene.auger@ocsinventory-ng.org>  Thu, 04 Jun 2026 17:30:14 +0200
+
+
