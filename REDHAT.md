@@ -1,6 +1,6 @@
 # Red Hat build
 
-This quickguide explain how to compile OCS Inventory backend, frontend, agent and meta packages for Red Hat.
+This quick guide explain how to compile OCS Inventory backend, frontend, agent and meta packages for Red Hat.
 
 ## Requirements
 
@@ -17,9 +17,10 @@ sudo dnf -y install \
   gnupg2
 ```
 
-A generated GPG key available on the system in the case you want to sign the package
+A GPG key available on the system, if you want to sign the package
 
-_Recommended : building package need to be done in a non-root user_
+
+_Recommended : Packages should be built as a non-root user_
 
 ## RPM layout (frontend / backend / agent)
 
@@ -69,7 +70,7 @@ In order to build the Source RPM (SRPM):
 rpmbuild -bs SPECS/ocsinventory-[backend|frontend|agent|server].spec
 ```
 
-In order to build the Binary RPM:
+In order to build the binary RPM:
 
 ```bash
 rpmbuild -bb SPECS/ocsinventory-[backend|frontend|agent|server].spec
