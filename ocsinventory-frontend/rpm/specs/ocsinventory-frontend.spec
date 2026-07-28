@@ -17,7 +17,7 @@ Source0: %{name}-%{version}.tar.gz
 Source1: ocsinventory-frontend.conf
 
 BuildRoot: %{buildroot}
-Requires: httpd
+Requires: nginx
 AutoReqProv: no
 
 %description
@@ -30,18 +30,22 @@ Web UI for OCS Inventory Backend API
 mkdir -p %{buildroot}/usr/share
 cp -r ./ %{buildroot}/usr/share
 mkdir -p %{buildroot}/var/log/ocsinventory-frontend
-mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d
+mkdir -p %{buildroot}%{_sysconfdir}/nginx/conf.d
 
-mv %{SOURCE1} %{buildroot}%{_sysconfdir}/httpd/conf.d
+cp %{SOURCE1} %{buildroot}%{_sysconfdir}/nginx/conf.d/ocsinventory-frontend.conf
 
 %clean
 rm -rf %{buildroot}
 
+%post
+chown -R nginx:nginx /usr/share/ocsinventory-frontend
+systemctl restart nginx
+
 %files
-%defattr(644, apache, apache, 755)
+%defattr(644, nginx, nginx, 755)
 /usr/share/ocsinventory-frontend
 /var/log/ocsinventory-frontend
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/ocsinventory-frontend.conf
+%config(noreplace) %{_sysconfdir}/nginx/conf.d/ocsinventory-frontend.conf
 
 %changelog
 * Thu Jun 04 2026 Charlene Auger <charlene.auger@ocsinventory-ng.org> - 3.0.0~rc1-1
