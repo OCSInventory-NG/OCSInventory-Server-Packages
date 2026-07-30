@@ -1,7 +1,7 @@
 FROM ubuntu:latest
 
 ARG REPO="ocsinventory-frontend"
-ARG VERSION=3.0.0~rc1
+ARG VERSION=3.0.0-rc1
 
 RUN apt update && apt dist-upgrade -y && \
         apt install -y nginx curl && \
@@ -9,7 +9,7 @@ RUN apt update && apt dist-upgrade -y && \
         rm -r /var/lib/apt/lists/* && \
         rm /etc/nginx/sites-enabled/default
 
-COPY files/${REPO}-${VERSION}.tar.gz /usr/share
+ADD https://github.com/OCSInventory-NG/OCSInventory-Server-Frontend-Rework/releases/download/${VERSION}/${REPO}-${VERSION}.tar.gz /usr/share/
 RUN cd /usr/share && \
     tar -xf ${REPO}-${VERSION}.tar.gz && \
     rm -rf ${REPO}-${VERSION}.tar.gz && \
