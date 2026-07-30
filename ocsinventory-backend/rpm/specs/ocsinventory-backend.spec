@@ -18,7 +18,12 @@ Source1:        ocsinventory-backend.conf
 Source2:        ocsinventory-backend.ini
 
 BuildRoot:      %{buildroot}
-Requires:       python3, python3-pip, uwsgi, nginx, python3-virtualenv, python3-devel, openldap-devel, uwsgi-plugin-python3, gcc, openldap-clients, epel-release
+
+%if 0%{?rhel} == 9
+Requires:       python3.14, python3.14-pip, python3.14-devel, uwsgi, nginx, openldap-devel, uwsgi-plugin-python3, gcc, openldap-clients, epel-release
+%else
+Requires:       python3, python3-pip, python3-devel, uwsgi, nginx, openldap-devel, uwsgi-plugin-python3, gcc, openldap-clients, epel-release
+%endif
 
 AutoReqProv:    no
 
@@ -35,6 +40,7 @@ OCS Inventory Backend API
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/
 cp -r * %{buildroot}/usr/share/
+cp %{buildroot}/usr/share/%{name}/.env-sample %{buildroot}/usr/share/%{name}/.env
 
 # Copy NGINX and UWSGI configuration files
 mkdir -p %{buildroot}/etc/nginx/conf.d/
@@ -55,6 +61,12 @@ rm -rf %{buildroot}
 %config(noreplace) %{_sysconfdir}/nginx/conf.d/ocsinventory-backend.conf
 %config(noreplace) %{_sysconfdir}/uwsgi.d/ocsinventory-backend.ini
 %attr(755, nginx, nginx) /var/log/ocsinventory-backend
+
+%if 0%{?rhel} == 9
+%global python_bin python3.14
+%else
+%global python_bin python3
+%endif
 
 %pre
 if [ -d /usr/share/ocsinventory-backend ]; then
@@ -84,12 +96,12 @@ echo "Launching OCS Inventory Backend post-installation script"
 
 # venv and requirements
 if [ ! -d "/usr/lib/ocsinventory-backend/venv" ]; then
-    # generating secret for Django 
+    # generating secret for Django
     echo "Generating Django secret key..."
-    SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(50))")
+    SECRET_KEY=$(%{python_bin} -c "import secrets; print(secrets.token_urlsafe(50))")
     sed -i "s/SECRET_KEY=.*/SECRET_KEY='${SECRET_KEY}'/" /usr/share/ocsinventory-backend/.env
     echo "Creating virtual environment..."
-    python3 -m venv /usr/lib/ocsinventory-backend/venv
+    %{python_bin} -m venv /usr/lib/ocsinventory-backend/venv
 fi
 
 echo "Activating virtual environment ..."
