@@ -28,4 +28,4 @@ HEALTHCHECK CMD curl --fail http://localhost/ || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]
 
-CMD nginx -g "daemon off;"
+CMD ["nginx", "-g", "daemon off;"]
