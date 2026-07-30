@@ -3,6 +3,16 @@
 
 set -e
 
+if [ ! -f "/app/ocsinventory-backend/.env" ]; then
+    if [ -f "/app/ocsinventory-backend/.env-sample" ]; then
+        echo ".env not found. Creating it from .env-sample..."
+        cp /app/ocsinventory-backend/.env-sample /app/ocsinventory-backend/.env
+    else
+        echo ".env and .env-sample not found. Exiting."
+        exit 1
+    fi
+fi
+
 if [ -f "/app/ocsinventory-backend/.env" ]; then
     source /app/ocsinventory-backend/.env
 
@@ -69,8 +79,6 @@ else
     echo "manage.py not found. Exiting."
     exit 1
 fi
-
-deactivate
 
 # Pass control to CMD in Dockerfile
 if [ -z "$1" ]; then
