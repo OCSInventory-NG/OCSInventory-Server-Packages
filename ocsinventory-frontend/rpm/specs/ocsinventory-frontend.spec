@@ -6,7 +6,7 @@
 
 Name: %{name}
 Version: %{version}
-Release: %{release}
+Release: %{release}%{dist}
 Summary: ocsinventory-frontend
 
 Group: Applications/Internet
