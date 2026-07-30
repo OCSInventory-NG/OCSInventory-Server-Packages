@@ -50,7 +50,8 @@ mkdir -p %{buildroot}/var/log/ocsinventory-backend
 rm -rf %{buildroot}
 
 %files
-%defattr(644, nginx, nginx, 755) /usr/share/ocsinventory-backend
+%defattr(644, nginx, nginx, 755)
+/usr/share/ocsinventory-backend
 %config(noreplace) %{_sysconfdir}/nginx/conf.d/ocsinventory-backend.conf
 %config(noreplace) %{_sysconfdir}/uwsgi.d/ocsinventory-backend.ini
 %attr(755, nginx, nginx) /var/log/ocsinventory-backend
