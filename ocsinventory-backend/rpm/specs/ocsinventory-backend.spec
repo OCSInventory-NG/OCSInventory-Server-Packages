@@ -6,7 +6,7 @@
 
 Name:           %{name}
 Version:        %{version}
-Release:        %{release}
+Release:        %{release}%{dist}
 Summary:        OCS Inventory Backend API
 
 Group:          Applications/System
@@ -63,7 +63,12 @@ if [ -d /usr/share/ocsinventory-backend ]; then
     echo "=                                          ="
     echo "============================================"
     # Save environment configuration
-    cp /usr/share/ocsinventory-backend/.env /tmp/.ocsenvbackup
+    mkdir -p /var/lib/ocsinventory-backend
+    chmod 700 /var/lib/ocsinventory-backend
+    if [ -f /usr/share/ocsinventory-backend/.env ]; then
+        cp /usr/share/ocsinventory-backend/.env /var/lib/ocsinventory-backend/.envbackup
+        chmod 600 /var/lib/ocsinventory-backend/.envbackup
+    fi
 else
     echo "=============================================="
     echo "=                                            ="
@@ -73,6 +78,7 @@ else
 fi
 
 %post
+set -e
 echo "Launching OCS Inventory Backend post-installation script"
 
 # venv and requirements
@@ -91,16 +97,16 @@ echo "Installing requirements ..."
 pip3 install -r /usr/share/ocsinventory-backend/requirements.txt
 
 # Check if update
-if [ -f /tmp/.ocsenvbackup ]; then
+if [ -f /var/lib/ocsinventory-backend/.envbackup ]; then
     echo "OCS Inventory Backend update detected"
-    cp /tmp/.ocsenvbackup /usr/share/ocsinventory-backend/.env
+    cp /var/lib/ocsinventory-backend/.envbackup /usr/share/ocsinventory-backend/.env
     echo "Running database migrations..."
     python3 /usr/share/ocsinventory-backend/manage.py migrate
 fi
 
 deactivate
 
-if [ ! -f /tmp/.ocsenvbackup ]; then
+if [ ! -f /var/lib/ocsinventory-backend/.envbackup ]; then
     chown -R nginx:nginx /usr/share/ocsinventory-backend/
     chmod -R 755 /usr/share/ocsinventory-backend/logs
 
@@ -118,22 +124,24 @@ systemctl restart nginx
 
 echo "OCS Inventory Backend successfully installed."
 
-if [ ! -f /tmp/.ocsenvbackup ]; then
+if [ ! -f /var/lib/ocsinventory-backend/.envbackup ]; then
     echo "================================================================================================================================="
     echo "=                                                                                                                               ="
     echo "= Please run the script '/usr/share/ocsinventory-backend/tools/configure-ocsinventory-backend.sh' to configure the application. ="
     echo "=                                                                                                                               ="
     echo "================================================================================================================================="
 else
-    rm -rf /tmp/.ocsenvbackup
+    rm -rf /var/lib/ocsinventory-backend/.envbackup
 fi
 
 %postun
-echo "Clean OCS Inventory Backend files..."
-rm -rf /usr/share/ocsinventory-backend
-rm -rf /usr/lib/ocsinventory-backend
-rm -rf /var/log/ocsinventory-backend
-echo "OCS Inventory Backend successfully uninstalled."
+if [ "$1" = "0" ]; then
+    echo "Clean OCS Inventory Backend files..."
+    rm -rf /usr/share/ocsinventory-backend
+    rm -rf /usr/lib/ocsinventory-backend
+    rm -rf /var/log/ocsinventory-backend
+    echo "OCS Inventory Backend successfully uninstalled."
+fi
 
 %changelog
 * Thu Jun 04 2026 Charlène Auger <charlene.auger@ocsinventory-ng.org> - 3.0.0~rc1-1
