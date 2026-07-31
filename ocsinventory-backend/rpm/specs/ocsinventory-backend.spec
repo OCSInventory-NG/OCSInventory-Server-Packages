@@ -3,6 +3,7 @@
 %define version 3.0.0~rc1
 %define release 1
 %define buildroot %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
+%{!?_unitdir: %define _unitdir /usr/lib/systemd/system}
 
 Name:           %{name}
 Version:        %{version}
@@ -25,6 +26,8 @@ Requires:       python3.14, python3.14-pip, python3.14-devel, nginx, openldap-de
 %else
 Requires:       python3, python3-pip, python3-devel, nginx, openldap-devel, gcc, openldap-clients, epel-release
 %endif
+
+Requires:       shadow-utils
 
 AutoReqProv:    no
 
@@ -61,12 +64,12 @@ mkdir -p %{buildroot}/var/log/ocsinventory-backend
 rm -rf %{buildroot}
 
 %files
-%defattr(644, nginx, nginx, 755)
+%defattr(644, ocsbackend, nginx, 755)
 /usr/share/ocsinventory-backend
 %config(noreplace) %{_sysconfdir}/nginx/conf.d/ocsinventory-backend.conf
 %config(noreplace) %{_sysconfdir}/uwsgi.d/ocsinventory-backend.ini
 %{_unitdir}/ocsinventory-backend-uwsgi.service
-%attr(755, nginx, nginx) /var/log/ocsinventory-backend
+%attr(755, ocsbackend, nginx) /var/log/ocsinventory-backend
 
 %if 0%{?rhel} == 9
 %global python_bin python3.14
@@ -75,6 +78,10 @@ rm -rf %{buildroot}
 %endif
 
 %pre
+if ! getent passwd ocsbackend >/dev/null; then
+    useradd --system --no-create-home --shell /sbin/nologin --gid nginx ocsbackend
+fi
+
 if [ -d /usr/share/ocsinventory-backend ]; then
     echo "============================================"
     echo "=                                          ="
@@ -127,12 +134,12 @@ fi
 deactivate
 
 if [ ! -f /var/lib/ocsinventory-backend/.envbackup ]; then
-    chown -R nginx:nginx /usr/share/ocsinventory-backend/
+    chown -R ocsbackend:nginx /usr/share/ocsinventory-backend/
     chmod -R 755 /usr/share/ocsinventory-backend/logs
 
     # ocsinventory socket dir and permissions
     mkdir -p /var/run/ocsinventory-backend/
-    chown nginx:nginx /var/run/ocsinventory-backend/
+    chown ocsbackend:nginx /var/run/ocsinventory-backend/
     chmod 755 /var/run/ocsinventory-backend/
 
     systemctl daemon-reload

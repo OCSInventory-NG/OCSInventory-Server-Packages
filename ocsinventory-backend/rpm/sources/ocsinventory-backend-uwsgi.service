@@ -4,6 +4,8 @@ After=network.target
 
 [Service]
 Type=simple
+User=ocsbackend
+Group=nginx
 ExecStart=/usr/lib/ocsinventory-backend/venv/bin/uwsgi --ini /etc/uwsgi.d/ocsinventory-backend.ini
 ExecReload=/bin/kill -HUP $MAINPID
 KillSignal=SIGQUIT
