@@ -1,0 +1,6 @@
+[ocsinventory]
+name=OCS Inventory Repository
+baseurl=https://rpm-v3.ocsinventory-ng.org/rpm/$releasever/$basearch/
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-ocsinventory
