@@ -39,6 +39,13 @@ rm -rf %{buildroot}
 
 %post
 chown -R nginx:nginx /usr/share/ocsinventory-frontend
+
+echo "NOTE: the stock /etc/nginx/nginx.conf ships an inline 'server {}' block"
+echo "for port 80 that is loaded before conf.d/*.conf and silently acts as"
+echo "the default server, even though it lacks the 'default_server' flag."
+echo "If OCS Inventory Frontend is not served on port 80, comment out that"
+echo "block in /etc/nginx/nginx.conf and restart nginx."
+
 systemctl restart nginx
 
 %files
