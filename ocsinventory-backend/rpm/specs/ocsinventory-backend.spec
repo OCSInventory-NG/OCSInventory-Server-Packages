@@ -18,6 +18,7 @@ Source0:        %{name}-%{version}.tar.gz
 Source1:        ocsinventory-backend.conf
 Source2:        ocsinventory-backend.ini
 Source3:        ocsinventory-backend-uwsgi.service
+Source4:        configure-ocsinventory-rhel.sh
 
 BuildRoot:      %{buildroot}
 
@@ -59,6 +60,10 @@ cp %{SOURCE3} %{buildroot}%{_unitdir}/ocsinventory-backend-uwsgi.service
 
 # create log directory
 mkdir -p %{buildroot}/var/log/ocsinventory-backend
+
+# Copy configuration script
+cp %{SOURCE4} %{buildroot}/usr/share/%{name}/tools/configure-ocsinventory-rhel.sh
+chmod 755 %{buildroot}/usr/share/%{name}/tools/configure-ocsinventory-rhel.sh
 
 %clean
 rm -rf %{buildroot}
@@ -155,7 +160,7 @@ echo "OCS Inventory Backend successfully installed."
 if [ ! -f /var/lib/ocsinventory-backend/.envbackup ]; then
     echo "================================================================================================================================="
     echo "=                                                                                                                               ="
-    echo "= Please run the script '/usr/share/ocsinventory-backend/tools/configure-ocsinventory-backend.sh' to configure the application. ="
+    echo "= Please run the script '/usr/share/ocsinventory-backend/tools/configure-ocsinventory-rhel.sh' to configure the application.      ="
     echo "=                                                                                                                               ="
     echo "================================================================================================================================="
 else
