@@ -15,7 +15,7 @@ URL:            https://www.ocsinventory-ng.org/
 
 BuildArch:      noarch
 BuildRoot:      %{buildroot}
-Requires:       ocsinventory-backend = %{version}-%{release}%{dist}, ocsinventory-frontend = %{version}-%{release}%{dist}
+Requires:       ocsinventory-backend = %{version}-%{release}, ocsinventory-frontend = %{version}-%{release}
 
 AutoReqProv:    no
 
