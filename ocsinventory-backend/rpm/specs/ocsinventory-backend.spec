@@ -16,13 +16,14 @@ URL:            https://www.ocsinventory-ng.org/
 Source0:        %{name}-%{version}.tar.gz
 Source1:        ocsinventory-backend.conf
 Source2:        ocsinventory-backend.ini
+Source3:        ocsinventory-backend-uwsgi.service
 
 BuildRoot:      %{buildroot}
 
 %if 0%{?rhel} == 9
-Requires:       python3.14, python3.14-pip, python3.14-devel, uwsgi, nginx, openldap-devel, uwsgi-plugin-python3, gcc, openldap-clients, epel-release
+Requires:       python3.14, python3.14-pip, python3.14-devel, nginx, openldap-devel, gcc, openldap-clients, epel-release
 %else
-Requires:       python3, python3-pip, python3-devel, uwsgi, nginx, openldap-devel, uwsgi-plugin-python3, gcc, openldap-clients, epel-release
+Requires:       python3, python3-pip, python3-devel, nginx, openldap-devel, gcc, openldap-clients, epel-release
 %endif
 
 AutoReqProv:    no
@@ -49,6 +50,10 @@ cp %{SOURCE1} %{buildroot}/etc/nginx/conf.d/ocsinventory-backend.conf
 mkdir -p %{buildroot}/etc/uwsgi.d/
 cp %{SOURCE2} %{buildroot}/etc/uwsgi.d/ocsinventory-backend.ini
 
+# Copy systemd unit
+mkdir -p %{buildroot}%{_unitdir}
+cp %{SOURCE3} %{buildroot}%{_unitdir}/ocsinventory-backend-uwsgi.service
+
 # create log directory
 mkdir -p %{buildroot}/var/log/ocsinventory-backend
 
@@ -60,6 +65,7 @@ rm -rf %{buildroot}
 /usr/share/ocsinventory-backend
 %config(noreplace) %{_sysconfdir}/nginx/conf.d/ocsinventory-backend.conf
 %config(noreplace) %{_sysconfdir}/uwsgi.d/ocsinventory-backend.ini
+%{_unitdir}/ocsinventory-backend-uwsgi.service
 %attr(755, nginx, nginx) /var/log/ocsinventory-backend
 
 %if 0%{?rhel} == 9
@@ -108,6 +114,7 @@ echo "Activating virtual environment ..."
 source /usr/lib/ocsinventory-backend/venv/bin/activate
 echo "Installing requirements ..."
 pip3 install -r /usr/share/ocsinventory-backend/requirements.txt
+pip3 install uwsgi
 
 # Check if update
 if [ -f /var/lib/ocsinventory-backend/.envbackup ]; then
@@ -128,11 +135,12 @@ if [ ! -f /var/lib/ocsinventory-backend/.envbackup ]; then
     chown nginx:nginx /var/run/ocsinventory-backend/
     chmod 755 /var/run/ocsinventory-backend/
 
-    systemctl enable uwsgi
+    systemctl daemon-reload
+    systemctl enable ocsinventory-backend-uwsgi
 fi
 
 echo "Restarting UWSGI and Nginx services..."
-systemctl restart uwsgi
+systemctl restart ocsinventory-backend-uwsgi
 systemctl restart nginx
 
 echo "OCS Inventory Backend successfully installed."
@@ -147,12 +155,19 @@ else
     rm -rf /var/lib/ocsinventory-backend/.envbackup
 fi
 
+%preun
+if [ "$1" = "0" ]; then
+    systemctl stop ocsinventory-backend-uwsgi
+    systemctl disable ocsinventory-backend-uwsgi
+fi
+
 %postun
 if [ "$1" = "0" ]; then
     echo "Clean OCS Inventory Backend files..."
     rm -rf /usr/share/ocsinventory-backend
     rm -rf /usr/lib/ocsinventory-backend
     rm -rf /var/log/ocsinventory-backend
+    systemctl daemon-reload
     echo "OCS Inventory Backend successfully uninstalled."
 fi
 
