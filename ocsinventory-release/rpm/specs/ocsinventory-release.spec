@@ -34,9 +34,6 @@ cp %{SOURCE0} %{buildroot}%{_sysconfdir}/yum.repos.d/ocsinventory.repo
 mkdir -p %{buildroot}%{_sysconfdir}/pki/rpm-gpg
 cp %{SOURCE1} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-ocsinventory
 
-%post
-rpm --import %{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-ocsinventory
-
 %clean
 rm -rf %{buildroot}
 
