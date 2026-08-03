@@ -7,13 +7,17 @@
 Name:           %{name}
 Version:        %{version}
 Release:        %{release}%{dist}
-Summary:        OCS Inventory YUM repository configuration and GPG key
+Summary:        OCS Inventory repository configuration and GPG key
 
 Group:          System Environment/Base
 License:        GPLv2
 URL:            https://www.ocsinventory-ng.org/
 
-Source0:        ocsinventory.repo
+%if 0%{?rhel}
+Source0:        ocsinventory-el.repo
+%else
+Source0:        ocsinventory-fc.repo
+%endif
 Source1:        RPM-GPG-KEY-ocsinventory
 
 BuildArch:      noarch
