@@ -25,7 +25,11 @@ BuildRoot:      %{buildroot}
 %if 0%{?rhel} == 9
 Requires:       python3.14, python3.14-pip, python3.14-devel, nginx, openldap-devel, gcc, openldap-clients, epel-release
 %else
+%if 0%{?rhel}
 Requires:       python3, python3-pip, python3-devel, nginx, openldap-devel, gcc, openldap-clients, epel-release
+%else
+Requires:       python3, python3-pip, python3-devel, nginx, openldap-devel, gcc, openldap-clients
+%endif
 %endif
 
 Requires:       shadow-utils
