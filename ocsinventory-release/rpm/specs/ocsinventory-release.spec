@@ -13,12 +13,9 @@ Group:          System Environment/Base
 License:        GPLv2
 URL:            https://www.ocsinventory-ng.org/
 
-%if 0%{?rhel}
 Source0:        ocsinventory-el.repo
-%else
-Source0:        ocsinventory-fc.repo
-%endif
-Source1:        RPM-GPG-KEY-ocsinventory
+Source1:        ocsinventory-fc.repo
+Source2:        RPM-GPG-KEY-ocsinventory
 
 BuildArch:      noarch
 BuildRoot:      %{buildroot}
@@ -33,10 +30,14 @@ file and the GPG key used to sign OCS Inventory packages.
 rm -rf %{buildroot}
 
 mkdir -p %{buildroot}%{_sysconfdir}/yum.repos.d
+%if 0%{?rhel}
 cp %{SOURCE0} %{buildroot}%{_sysconfdir}/yum.repos.d/ocsinventory.repo
+%else
+cp %{SOURCE1} %{buildroot}%{_sysconfdir}/yum.repos.d/ocsinventory.repo
+%endif
 
 mkdir -p %{buildroot}%{_sysconfdir}/pki/rpm-gpg
-cp %{SOURCE1} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-ocsinventory
+cp %{SOURCE2} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-ocsinventory
 
 %clean
 rm -rf %{buildroot}
