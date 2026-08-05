@@ -105,3 +105,24 @@ Building the package will output different files in `~/rpmbuild/SRPMS` and `~/rp
 ~/rpmbuild/SRPMS/ocsinventory-[backend|frontend|agent|server]-X.X.X-X.src.rpm
 ~/rpmbuild/RPMS/[x86_64|noarch]/ocsinventory-[backend|frontend|agent|server]-X.X.X-X.[x86_64|noarch].rpm
 ```
+
+## Publishing ocsinventory-release as "latest"
+
+`ocsinventory-release` bootstraps the YUM repository and its GPG key, so it
+must be downloadable directly (it cannot be installed from the repository
+it configures). `rpmbuild` always produces a versioned filename
+(`ocsinventory-release-X.X.X-X.elN.noarch.rpm`) — this is intentional and
+must **not** be changed in the spec, since `dnf`/`rpm` rely on the real
+`Version`/`Release` fields to manage upgrades correctly.
+
+Instead, when publishing a new build to the package server, copy (or
+symlink) the versioned RPM to a stable, version-less name so the install
+instructions and download links never need to change:
+
+```bash
+cp ~/rpmbuild/RPMS/noarch/ocsinventory-release-X.X.X-X.elN.noarch.rpm \
+   /path/to/repo/rpm/ocsinventory-release-latest.noarch.rpm
+```
+
+The real, versioned package should still be published in the repository
+itself so that `dnf upgrade` can track subsequent releases normally.

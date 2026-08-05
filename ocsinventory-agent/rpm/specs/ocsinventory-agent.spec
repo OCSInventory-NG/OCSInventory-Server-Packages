@@ -7,17 +7,14 @@
 
 Name:           %{name}
 Version:        %{version}
-Release:        %{release}
+Release:        %{release}%{dist}
 Summary:        OCS Inventory Agent
 
 Group:          Applications/System
 License:        GPLv3+
 URL:            https://www.ocsinventory-ng.org/
 
-Source0:        ocsinventory-cli
-Source1:        install.sh
-Source2:        uninstall.sh
-Source3:        ocsinventory-agent.service
+Source0:        %{name}-%{version}.tar.gz
 
 BuildArch:      x86_64
 BuildRoot:      %{buildroot}
@@ -30,16 +27,18 @@ AutoReqProv:    no
 OCS Inventory Agent.
 
 %prep
+%setup -q -c -n %{name}-%{version}
 
 %build
 
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}/usr/share/ocsinventory-agent
-install -m 0755 %{SOURCE0} %{buildroot}/usr/share/ocsinventory-agent/ocsinventory-cli
-install -m 0755 %{SOURCE1} %{buildroot}/usr/share/ocsinventory-agent/install.sh
-install -m 0755 %{SOURCE2} %{buildroot}/usr/share/ocsinventory-agent/uninstall.sh
-install -m 0644 %{SOURCE3} %{buildroot}/usr/share/ocsinventory-agent/ocsinventory-agent.service
+mkdir -p %{buildroot}/usr/share
+cp -r ocsinventory-agent %{buildroot}/usr/share
+chmod 0755 %{buildroot}/usr/share/ocsinventory-agent/ocsinventory-cli
+chmod 0755 %{buildroot}/usr/share/ocsinventory-agent/install.sh
+chmod 0755 %{buildroot}/usr/share/ocsinventory-agent/uninstall.sh
+chmod 0644 %{buildroot}/usr/share/ocsinventory-agent/ocsinventory-agent.service
 
 mkdir -p %{buildroot}%{_sysconfdir}/ocsinventory-agent
 cat <<'CONFIG' > %{buildroot}%{_sysconfdir}/ocsinventory-agent/config.json
@@ -92,25 +91,6 @@ fi
 
 if [ ! -L "${SYMLINK}" ]; then
     ln -s "${AGENT_BIN}" "${SYMLINK}" || true
-fi
-
-
-install -d "${CONFIG_DIR}"
-if [ ! -f "${CONFIG_FILE}" ]; then
-    cat <<'CONFIG' > "${CONFIG_FILE}"
-{
-  "url": "",
-  "username": "",
-  "password": "",
-  "mode": 4,
-  "log_level": 3,
-  "log_file": true,
-  "log_file_path": "/var/log/ocsinventory-agent/ocsinventory-agent.log",
-  "data_directory": "/var/lib/ocsinventory-data",
-  "certificate": "none",
-  "bypass_certificate": false
-}
-CONFIG
 fi
 
 install -d "${DATA_DIR}"

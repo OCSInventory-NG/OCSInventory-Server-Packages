@@ -6,7 +6,7 @@
 
 Name:           %{name}
 Version:        %{version}
-Release:        %{release}
+Release:        %{release}%{dist}
 Summary:        OCS Inventory Server (Backend API + Web Console)
 
 Group:          Applications/System
@@ -15,7 +15,7 @@ URL:            https://www.ocsinventory-ng.org/
 
 BuildArch:      noarch
 BuildRoot:      %{buildroot}
-Requires:       ocsinventory-backend, ocsinventory-frontend
+Requires:       ocsinventory-backend = %{version}-%{release}, ocsinventory-frontend = %{version}-%{release}
 
 AutoReqProv:    no
 

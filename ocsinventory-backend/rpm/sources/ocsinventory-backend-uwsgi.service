@@ -1,0 +1,15 @@
+[Unit]
+Description=uWSGI for OCS Inventory Backend
+After=network.target
+
+[Service]
+Type=simple
+User=ocsbackend
+Group=nginx
+ExecStart=/usr/lib/ocsinventory-backend/venv/bin/uwsgi --ini /etc/uwsgi.d/ocsinventory-backend.ini
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGQUIT
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

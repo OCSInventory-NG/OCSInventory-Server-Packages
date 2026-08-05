@@ -3,10 +3,11 @@
 %define version 3.0.0~rc1
 %define release 1
 %define buildroot %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
+%{!?_unitdir: %define _unitdir /usr/lib/systemd/system}
 
 Name:           %{name}
 Version:        %{version}
-Release:        %{release}
+Release:        %{release}%{dist}
 Summary:        OCS Inventory Backend API
 
 Group:          Applications/System
@@ -16,9 +17,22 @@ URL:            https://www.ocsinventory-ng.org/
 Source0:        %{name}-%{version}.tar.gz
 Source1:        ocsinventory-backend.conf
 Source2:        ocsinventory-backend.ini
+Source3:        ocsinventory-backend-uwsgi.service
+Source4:        configure-ocsinventory-rhel.sh
 
 BuildRoot:      %{buildroot}
-Requires:       python3, python3-pip, uwsgi, nginx, python3-virtualenv, python3-devel, openldap-devel, uwsgi-plugin-python3, gcc, openldap-clients, epel-release
+
+%if 0%{?rhel} == 9
+Requires:       python3.14, python3.14-pip, python3.14-devel, nginx, openldap-devel, gcc, openldap-clients, epel-release
+%else
+%if 0%{?rhel}
+Requires:       python3, python3-pip, python3-devel, nginx, openldap-devel, gcc, openldap-clients, epel-release
+%else
+Requires:       python3, python3-pip, python3-devel, nginx, openldap-devel, gcc, openldap-clients
+%endif
+%endif
+
+Requires:       shadow-utils
 
 AutoReqProv:    no
 
@@ -35,6 +49,7 @@ OCS Inventory Backend API
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/
 cp -r * %{buildroot}/usr/share/
+cp %{buildroot}/usr/share/%{name}/.env-sample %{buildroot}/usr/share/%{name}/.env
 
 # Copy NGINX and UWSGI configuration files
 mkdir -p %{buildroot}/etc/nginx/conf.d/
@@ -43,19 +58,39 @@ cp %{SOURCE1} %{buildroot}/etc/nginx/conf.d/ocsinventory-backend.conf
 mkdir -p %{buildroot}/etc/uwsgi.d/
 cp %{SOURCE2} %{buildroot}/etc/uwsgi.d/ocsinventory-backend.ini
 
+# Copy systemd unit
+mkdir -p %{buildroot}%{_unitdir}
+cp %{SOURCE3} %{buildroot}%{_unitdir}/ocsinventory-backend-uwsgi.service
+
 # create log directory
 mkdir -p %{buildroot}/var/log/ocsinventory-backend
+
+# Copy configuration script
+cp %{SOURCE4} %{buildroot}/usr/share/%{name}/tools/configure-ocsinventory-rhel.sh
+chmod 755 %{buildroot}/usr/share/%{name}/tools/configure-ocsinventory-rhel.sh
 
 %clean
 rm -rf %{buildroot}
 
 %files
-%defattr(644, nginx, nginx, 755) /usr/share/ocsinventory-backend
+%defattr(644, ocsbackend, nginx, 755)
+/usr/share/ocsinventory-backend
 %config(noreplace) %{_sysconfdir}/nginx/conf.d/ocsinventory-backend.conf
 %config(noreplace) %{_sysconfdir}/uwsgi.d/ocsinventory-backend.ini
-%attr(755, nginx, nginx) /var/log/ocsinventory-backend
+%{_unitdir}/ocsinventory-backend-uwsgi.service
+%attr(755, ocsbackend, nginx) /var/log/ocsinventory-backend
+
+%if 0%{?rhel} == 9
+%global python_bin python3.14
+%else
+%global python_bin python3
+%endif
 
 %pre
+if ! getent passwd ocsbackend >/dev/null; then
+    useradd --system --no-create-home --shell /sbin/nologin --gid nginx ocsbackend
+fi
+
 if [ -d /usr/share/ocsinventory-backend ]; then
     echo "============================================"
     echo "=                                          ="
@@ -63,7 +98,12 @@ if [ -d /usr/share/ocsinventory-backend ]; then
     echo "=                                          ="
     echo "============================================"
     # Save environment configuration
-    cp /usr/share/ocsinventory-backend/.env /tmp/.ocsenvbackup
+    mkdir -p /var/lib/ocsinventory-backend
+    chmod 700 /var/lib/ocsinventory-backend
+    if [ -f /usr/share/ocsinventory-backend/.env ]; then
+        cp /usr/share/ocsinventory-backend/.env /var/lib/ocsinventory-backend/.envbackup
+        chmod 600 /var/lib/ocsinventory-backend/.envbackup
+    fi
 else
     echo "=============================================="
     echo "=                                            ="
@@ -73,67 +113,79 @@ else
 fi
 
 %post
+set -e
 echo "Launching OCS Inventory Backend post-installation script"
 
 # venv and requirements
 if [ ! -d "/usr/lib/ocsinventory-backend/venv" ]; then
-    # generating secret for Django 
+    # generating secret for Django
     echo "Generating Django secret key..."
-    SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(50))")
+    SECRET_KEY=$(%{python_bin} -c "import secrets; print(secrets.token_urlsafe(50))")
     sed -i "s/SECRET_KEY=.*/SECRET_KEY='${SECRET_KEY}'/" /usr/share/ocsinventory-backend/.env
     echo "Creating virtual environment..."
-    python3 -m venv /usr/lib/ocsinventory-backend/venv
+    %{python_bin} -m venv /usr/lib/ocsinventory-backend/venv
 fi
 
 echo "Activating virtual environment ..."
 source /usr/lib/ocsinventory-backend/venv/bin/activate
 echo "Installing requirements ..."
 pip3 install -r /usr/share/ocsinventory-backend/requirements.txt
+pip3 install uwsgi
 
 # Check if update
-if [ -f /tmp/.ocsenvbackup ]; then
+if [ -f /var/lib/ocsinventory-backend/.envbackup ]; then
     echo "OCS Inventory Backend update detected"
-    cp /tmp/.ocsenvbackup /usr/share/ocsinventory-backend/.env
+    cp /var/lib/ocsinventory-backend/.envbackup /usr/share/ocsinventory-backend/.env
     echo "Running database migrations..."
     python3 /usr/share/ocsinventory-backend/manage.py migrate
 fi
 
 deactivate
 
-if [ ! -f /tmp/.ocsenvbackup ]; then
-    chown -R nginx:nginx /usr/share/ocsinventory-backend/
+if [ ! -f /var/lib/ocsinventory-backend/.envbackup ]; then
+    chown -R ocsbackend:nginx /usr/share/ocsinventory-backend/
     chmod -R 755 /usr/share/ocsinventory-backend/logs
 
     # ocsinventory socket dir and permissions
     mkdir -p /var/run/ocsinventory-backend/
-    chown nginx:nginx /var/run/ocsinventory-backend/
+    chown ocsbackend:nginx /var/run/ocsinventory-backend/
     chmod 755 /var/run/ocsinventory-backend/
 
-    systemctl enable uwsgi
+    systemctl daemon-reload
+    systemctl enable ocsinventory-backend-uwsgi
 fi
 
 echo "Restarting UWSGI and Nginx services..."
-systemctl restart uwsgi
+systemctl restart ocsinventory-backend-uwsgi
 systemctl restart nginx
 
 echo "OCS Inventory Backend successfully installed."
 
-if [ ! -f /tmp/.ocsenvbackup ]; then
+if [ ! -f /var/lib/ocsinventory-backend/.envbackup ]; then
     echo "================================================================================================================================="
     echo "=                                                                                                                               ="
-    echo "= Please run the script '/usr/share/ocsinventory-backend/tools/configure-ocsinventory-backend.sh' to configure the application. ="
+    echo "= Please run the script '/usr/share/ocsinventory-backend/tools/configure-ocsinventory-rhel.sh' to configure the application.      ="
     echo "=                                                                                                                               ="
     echo "================================================================================================================================="
 else
-    rm -rf /tmp/.ocsenvbackup
+    rm -rf /var/lib/ocsinventory-backend/.envbackup
+fi
+
+%preun
+if [ "$1" = "0" ]; then
+    systemctl stop ocsinventory-backend-uwsgi
+    systemctl disable ocsinventory-backend-uwsgi
 fi
 
 %postun
-echo "Clean OCS Inventory Backend files..."
-rm -rf /usr/share/ocsinventory-backend
-rm -rf /usr/lib/ocsinventory-backend
-rm -rf /var/log/ocsinventory-backend
-echo "OCS Inventory Backend successfully uninstalled."
+if [ "$1" = "0" ]; then
+    echo "Clean OCS Inventory Backend files..."
+    rm -rf /usr/share/ocsinventory-backend
+    rm -rf /usr/lib/ocsinventory-backend
+    rm -rf /var/log/ocsinventory-backend
+    systemctl daemon-reload
+    echo "OCS Inventory Backend successfully uninstalled."
+fi
 
 %changelog
 * Thu Jun 04 2026 Charlène Auger <charlene.auger@ocsinventory-ng.org> - 3.0.0~rc1-1

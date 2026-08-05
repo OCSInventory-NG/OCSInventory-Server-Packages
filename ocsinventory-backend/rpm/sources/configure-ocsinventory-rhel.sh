@@ -1,0 +1,124 @@
+#!/usr/bin/bash
+
+echo ""
+echo "================================================="
+echo "=                                               ="
+echo "=      OCS Inventory Backend configuration      ="
+echo "=                                               ="
+echo "================================================="
+echo ""
+
+if [[ ! -w "/usr/share/ocsinventory-backend/.env" ]]; then
+	echo "You do not have sufficient permissions to configure the OCS Inventory Backend."
+	exit 1
+fi
+
+# remove default Nginx configuration
+if [ -f /etc/nginx/sites-enabled/default ]; then
+	echo "Removing default Nginx configuration..."
+	rm /etc/nginx/sites-enabled/default
+	echo "Default Nginx configuration removed."
+fi
+
+echo "Select the database engine:"
+echo ""
+echo "[1] PostgreSQL"
+echo "[2] MySQL | MariaDB"
+echo ""
+read -r -p "Choose the database engine [1|2]: " db_engine
+
+case $db_engine in
+1)
+	sed -i "s/DB_ENGINE=.*/DB_ENGINE='django.db.backends.postgresql'/" /usr/share/ocsinventory-backend/.env
+	echo "Database engine configured for PostgreSQL."
+	echo "Attempting to install the PostgreSQL Python library."
+	source /usr/lib/ocsinventory-backend/venv/bin/activate
+	pip3 install -r /usr/share/ocsinventory-backend/requirements_psql.txt
+	deactivate
+	default_db_port=5432
+	;;
+2)
+	sed -i "s/DB_ENGINE=.*/DB_ENGINE='django.db.backends.mysql'/" /usr/share/ocsinventory-backend/.env
+	echo "Database engine configured for MySQL or MariaDB."
+	echo "Attempting to install the MySQL/MariaDB Python library."
+	source /usr/lib/ocsinventory-backend/venv/bin/activate
+	pip3 install -r /usr/share/ocsinventory-backend/requirements_mysql.txt
+	deactivate
+	default_db_port=3306
+	;;
+*)
+	echo "Invalid option, configuration aborted!"
+	exit 1
+	;;
+esac
+
+read -r -p "Enter the database server host [localhost]: " db_host
+db_host=${db_host:-localhost}
+sed -i "s/DB_HOST=.*/DB_HOST='$db_host'/" /usr/share/ocsinventory-backend/.env
+
+read -r -p "Enter the database server port [$default_db_port]: " db_port
+db_port=${db_port:-$default_db_port}
+sed -i "s/DB_PORT=.*/DB_PORT='$db_port'/" /usr/share/ocsinventory-backend/.env
+
+read -r -p "Enter the database name [ocsinventorydb]: " db_name
+db_name=${db_name:-ocsinventorydb}
+sed -i "s/DB_NAME=.*/DB_NAME='$db_name'/" /usr/share/ocsinventory-backend/.env
+
+read -r -p "Enter the database username [ocsinventory]: " db_user
+db_user=${db_user:-ocsinventory}
+sed -i "s/DB_USER=.*/DB_USER='$db_user'/" /usr/share/ocsinventory-backend/.env
+
+read -r -p "Enter the database user password: " db_password
+sed -i "s/DB_PASSWORD=.*/DB_PASSWORD='$db_password'/" /usr/share/ocsinventory-backend/.env
+
+read -r -p "Enter the frontend URL for login redirection [http://localhost]: " frontend_redirect
+frontend_redirect=${frontend_redirect:-http://localhost}
+if grep -q "^FRONTEND_REDIRECT=" /usr/share/ocsinventory-backend/.env; then
+	sed -i "s#FRONTEND_REDIRECT=.*#FRONTEND_REDIRECT='$frontend_redirect'#" /usr/share/ocsinventory-backend/.env
+else
+	echo "FRONTEND_REDIRECT='$frontend_redirect'" >> /usr/share/ocsinventory-backend/.env
+fi
+
+echo "Configuration completed!"
+echo "Running database migrations now..."
+
+source /usr/lib/ocsinventory-backend/venv/bin/activate
+
+if python3 /usr/share/ocsinventory-backend/manage.py migrate >/tmp/ocsinventory-backend-configuration.log 2>&1; then
+	echo "Database migrations applied successfully!"
+else
+	echo "Error during database migrations, please check /tmp/ocsinventory-backend-configuration.log for more information."
+	deactivate
+	exit 1
+fi
+
+# restart uWSGI service
+echo "Restarting uWSGI and Nginx services..."
+systemctl restart ocsinventory-backend-uwsgi
+if [ $? -eq 0 ]; then
+	echo "uWSGI service restarted successfully."
+	deactivate
+else
+	echo "Error restarting uWSGI service. Please check the service status manually."
+	deactivate
+	exit 1
+fi
+
+systemctl restart nginx
+if [ $? -eq 0 ]; then
+	echo "Nginx service restarted successfully."
+else
+	echo "Error restarting Nginx service. Please check the service status manually."
+	exit 1
+fi
+
+echo ""
+echo "For more information, refer to /tmp/ocsinventory-backend-configuration.log for the database migration logs."
+
+echo ""
+echo "==========================================================="
+echo "=                                                         ="
+echo "=      OCS Inventory Backend successfully configured      ="
+echo "=                                                         ="
+echo "==========================================================="
+echo ""

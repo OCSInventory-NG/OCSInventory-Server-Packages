@@ -6,7 +6,7 @@
 
 Name: %{name}
 Version: %{version}
-Release: %{release}
+Release: %{release}%{dist}
 Summary: ocsinventory-frontend
 
 Group: Applications/Internet
@@ -17,7 +17,7 @@ Source0: %{name}-%{version}.tar.gz
 Source1: ocsinventory-frontend.conf
 
 BuildRoot: %{buildroot}
-Requires: httpd
+Requires: nginx
 AutoReqProv: no
 
 %description
@@ -30,18 +30,29 @@ Web UI for OCS Inventory Backend API
 mkdir -p %{buildroot}/usr/share
 cp -r ./ %{buildroot}/usr/share
 mkdir -p %{buildroot}/var/log/ocsinventory-frontend
-mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d
+mkdir -p %{buildroot}%{_sysconfdir}/nginx/conf.d
 
-mv %{SOURCE1} %{buildroot}%{_sysconfdir}/httpd/conf.d
+cp %{SOURCE1} %{buildroot}%{_sysconfdir}/nginx/conf.d/ocsinventory-frontend.conf
 
 %clean
 rm -rf %{buildroot}
 
+%post
+chown -R nginx:nginx /usr/share/ocsinventory-frontend
+
+echo "NOTE: the stock /etc/nginx/nginx.conf ships an inline 'server {}' block"
+echo "for port 80 that is loaded before conf.d/*.conf and silently acts as"
+echo "the default server, even though it lacks the 'default_server' flag."
+echo "If OCS Inventory Frontend is not served on port 80, comment out that"
+echo "block in /etc/nginx/nginx.conf and restart nginx."
+
+systemctl restart nginx
+
 %files
-%defattr(644, apache, apache, 755)
+%defattr(644, nginx, nginx, 755)
 /usr/share/ocsinventory-frontend
 /var/log/ocsinventory-frontend
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/ocsinventory-frontend.conf
+%config(noreplace) %{_sysconfdir}/nginx/conf.d/ocsinventory-frontend.conf
 
 %changelog
 * Thu Jun 04 2026 Charlene Auger <charlene.auger@ocsinventory-ng.org> - 3.0.0~rc1-1
