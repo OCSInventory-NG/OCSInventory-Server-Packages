@@ -9,7 +9,7 @@ RUN apt update && apt dist-upgrade -y && \
         rm -r /var/lib/apt/lists/* && \
         rm /etc/nginx/sites-enabled/default
 
-ADD https://github.com/gillesdubois/OCSInventory-Server-Frontend-Rework/releases/download/${VERSION}/${REPO}-${VERSION}.tar.gz /usr/share/
+ADD https://github.com/OCSInventory-NG/OCSInventory-Server-Frontend-Rework/releases/download/${VERSION}/${REPO}-${VERSION}.tar.gz /usr/share/
 RUN cd /usr/share && \
     tar -xf ${REPO}-${VERSION}.tar.gz && \
     rm -rf ${REPO}-${VERSION}.tar.gz && \

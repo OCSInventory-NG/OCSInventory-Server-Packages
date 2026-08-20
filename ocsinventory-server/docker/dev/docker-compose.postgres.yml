@@ -13,7 +13,7 @@ services:
     build:
       context: ../../../ocsinventory-backend/docker/dev
       args:
-        BACKEND_REPO: ${BACKEND_REPO:-https://github.com/gillesdubois/OCSInventory-Server-Backend-Rework.git}
+        BACKEND_REPO: ${BACKEND_REPO:-https://github.com/OCSInventory-NG/OCSInventory-Server-Backend-Rework.git}
         BACKEND_REF: ${BACKEND_REF:-dev}
     image: ocsinventory/ocsinventory-backend:dev
     container_name: ocsinventory-backend-dev
@@ -79,7 +79,7 @@ services:
     build:
       context: ../../../ocsinventory-frontend/docker/dev
       args:
-        FRONTEND_REPO: ${FRONTEND_REPO:-https://github.com/gillesdubois/OCSInventory-Server-Frontend-Rework.git}
+        FRONTEND_REPO: ${FRONTEND_REPO:-https://github.com/OCSInventory-NG/OCSInventory-Server-Frontend-Rework.git}
         FRONTEND_REF: ${FRONTEND_REF:-dev}
     image: ocsinventory/ocsinventory-frontend:dev
     container_name: ocsinventory-frontend-dev

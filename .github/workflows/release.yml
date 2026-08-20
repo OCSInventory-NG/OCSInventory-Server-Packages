@@ -74,9 +74,9 @@ jobs:
         id: source
         run: |
           case "${{ matrix.component }}" in
-            backend)  echo "repo=gillesdubois/OCSInventory-Server-Backend-Rework" >> "$GITHUB_OUTPUT" ;;
-            frontend) echo "repo=gillesdubois/OCSInventory-Server-Frontend-Rework" >> "$GITHUB_OUTPUT" ;;
-            agent)    echo "repo=gillesdubois/OCSInventory-Agent-Rework" >> "$GITHUB_OUTPUT" ;;
+            backend)  echo "repo=OCSInventory-NG/OCSInventory-Server-Backend-Rework" >> "$GITHUB_OUTPUT" ;;
+            frontend) echo "repo=OCSInventory-NG/OCSInventory-Server-Frontend-Rework" >> "$GITHUB_OUTPUT" ;;
+            agent)    echo "repo=OCSInventory-NG/OCSInventory-Agent-Rework" >> "$GITHUB_OUTPUT" ;;
             server)   echo "repo=" >> "$GITHUB_OUTPUT" ;; # meta-package, no upstream source
           esac
 
@@ -156,9 +156,9 @@ jobs:
         id: source
         run: |
           case "${{ matrix.component }}" in
-            backend)  echo "repo=gillesdubois/OCSInventory-Server-Backend-Rework" >> "$GITHUB_OUTPUT" ;;
-            frontend) echo "repo=gillesdubois/OCSInventory-Server-Frontend-Rework" >> "$GITHUB_OUTPUT" ;;
-            agent)    echo "repo=gillesdubois/OCSInventory-Agent-Rework" >> "$GITHUB_OUTPUT" ;;
+            backend)  echo "repo=OCSInventory-NG/OCSInventory-Server-Backend-Rework" >> "$GITHUB_OUTPUT" ;;
+            frontend) echo "repo=OCSInventory-NG/OCSInventory-Server-Frontend-Rework" >> "$GITHUB_OUTPUT" ;;
+            agent)    echo "repo=OCSInventory-NG/OCSInventory-Agent-Rework" >> "$GITHUB_OUTPUT" ;;
             server)   echo "repo=" >> "$GITHUB_OUTPUT" ;;
           esac
 

@@ -11,7 +11,7 @@
 # (GitHub allows fetching any reachable commit over HTTPS on public repos;
 # abbreviated SHAs are not resolvable this way).
 # no rebuild needed.
-ARG BACKEND_REPO="https://github.com/gillesdubois/OCSInventory-Server-Backend-Rework.git"
+ARG BACKEND_REPO="https://github.com/OCSInventory-NG/OCSInventory-Server-Backend-Rework.git"
 ARG BACKEND_REF="dev"
 
 FROM python:3.12-slim AS build

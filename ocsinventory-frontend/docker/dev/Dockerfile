@@ -10,7 +10,7 @@
 # FRONTEND_REF accepts a branch name, a tag, or a full 40-character commit SHA
 # (GitHub allows fetching any reachable commit over HTTPS on public repos;
 # abbreviated SHAs are not resolvable this way).
-ARG FRONTEND_REPO="https://github.com/gillesdubois/OCSInventory-Server-Frontend-Rework.git"
+ARG FRONTEND_REPO="https://github.com/OCSInventory-NG/OCSInventory-Server-Frontend-Rework.git"
 ARG FRONTEND_REF="dev"
 
 FROM node:20-slim AS build
