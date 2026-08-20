@@ -79,16 +79,7 @@ jobs:
           case "${{ matrix.component }}" in
             backend)  echo "repo=gillesdubois/OCSInventory-Server-Backend-Rework" >> "$GITHUB_OUTPUT" ;;
             frontend) echo "repo=gillesdubois/OCSInventory-Server-Frontend-Rework" >> "$GITHUB_OUTPUT" ;;
-            agent)
-              # Unlike backend/frontend, the agent isn't repackaged from a
-              # GitHub release tarball: rpm-v3.ocsinventory-ng.org and
-              # deb-v3.ocsinventory-ng.org (configured by ocsinventory-release)
-              # are this pipeline's *publish destinations*, not a source.
-              # Building the ocsinventory-cli (dart) binary + install/uninstall
-              # scripts for Linux is currently a manual step with no
-              # automated source yet, so this job intentionally keeps
-              # skipping with a warning until that process is defined.
-              echo "repo=" >> "$GITHUB_OUTPUT" ;;
+            agent)    echo "repo=gillesdubois/OCSInventory-Agent-Rework" >> "$GITHUB_OUTPUT" ;;
             server)   echo "repo=" >> "$GITHUB_OUTPUT" ;; # meta-package, no upstream source
           esac
 
@@ -97,11 +88,26 @@ jobs:
         run: |
           set -euo pipefail
           pkg="ocsinventory-${{ matrix.component }}"
-          url="https://github.com/${{ steps.source.outputs.repo }}/releases/download/${VERSION}/${pkg}-${VERSION}.tar.gz"
-          echo "fetching $url"
-          curl -fsSL "$url" -o "/tmp/${pkg}.tar.gz"
           mkdir -p "${pkg}/deb/${pkg}/usr/share"
-          tar -xzf "/tmp/${pkg}.tar.gz" -C "${pkg}/deb/${pkg}/usr/share"
+          if [[ "${{ matrix.component }}" == "agent" ]]; then
+            # Unlike backend/frontend, the agent doesn't publish a plain
+            # ocsinventory-agent-<version>.tar.gz: its release ships one
+            # setup archive per target platform, each wrapping its own
+            # differently-named top-level directory - use the Debian-flavored
+            # Linux one here, and strip that directory instead of relying on
+            # it being named "ocsinventory-agent".
+            asset="OCSInventory-Agent-Setup-Linux-Deb-${VERSION}.tar.xz"
+            url="https://github.com/${{ steps.source.outputs.repo }}/releases/download/${VERSION}/${asset}"
+            echo "fetching $url"
+            curl -fsSL "$url" -o "/tmp/${asset}"
+            mkdir -p "${pkg}/deb/${pkg}/usr/share/${pkg}"
+            tar -xJf "/tmp/${asset}" -C "${pkg}/deb/${pkg}/usr/share/${pkg}" --strip-components=1
+          else
+            url="https://github.com/${{ steps.source.outputs.repo }}/releases/download/${VERSION}/${pkg}-${VERSION}.tar.gz"
+            echo "fetching $url"
+            curl -fsSL "$url" -o "/tmp/${pkg}.tar.gz"
+            tar -xzf "/tmp/${pkg}.tar.gz" -C "${pkg}/deb/${pkg}/usr/share"
+          fi
 
       - name: Skip (no resolved upstream repo for this component)
         if: steps.source.outputs.repo == '' && matrix.component != 'server'
@@ -162,7 +168,7 @@ jobs:
           case "${{ matrix.component }}" in
             backend)  echo "repo=gillesdubois/OCSInventory-Server-Backend-Rework" >> "$GITHUB_OUTPUT" ;;
             frontend) echo "repo=gillesdubois/OCSInventory-Server-Frontend-Rework" >> "$GITHUB_OUTPUT" ;;
-            agent)    echo "repo=" >> "$GITHUB_OUTPUT" ;; # TODO: see build-deb
+            agent)    echo "repo=gillesdubois/OCSInventory-Agent-Rework" >> "$GITHUB_OUTPUT" ;;
             server)   echo "repo=" >> "$GITHUB_OUTPUT" ;;
           esac
 
@@ -179,9 +185,20 @@ jobs:
           set -euo pipefail
           pkg="ocsinventory-${{ matrix.component }}"
           rpm_version="${VERSION/-/\~}"
-          url="https://github.com/${{ steps.source.outputs.repo }}/releases/download/${VERSION}/${pkg}-${VERSION}.tar.gz"
-          echo "fetching $url"
-          curl -fsSL "$url" -o "${pkg}/rpm/sources/${pkg}-${rpm_version}.tar.gz"
+          if [[ "${{ matrix.component }}" == "agent" ]]; then
+            # See build-deb: the agent ships one setup archive per platform
+            # instead of a plain ocsinventory-agent-<version>.tar.gz - the
+            # .spec's Source0/%prep are written for this Rhel-flavored one,
+            # .tar.xz and all (see ocsinventory-agent.spec).
+            asset="OCSInventory-Agent-Setup-Linux-Rhel-${VERSION}.tar.xz"
+            url="https://github.com/${{ steps.source.outputs.repo }}/releases/download/${VERSION}/${asset}"
+            echo "fetching $url"
+            curl -fsSL "$url" -o "${pkg}/rpm/sources/${pkg}-${rpm_version}.tar.xz"
+          else
+            url="https://github.com/${{ steps.source.outputs.repo }}/releases/download/${VERSION}/${pkg}-${VERSION}.tar.gz"
+            echo "fetching $url"
+            curl -fsSL "$url" -o "${pkg}/rpm/sources/${pkg}-${rpm_version}.tar.gz"
+          fi
 
       - name: Build .rpm
         if: steps.source.outputs.repo != '' || matrix.component == 'server'

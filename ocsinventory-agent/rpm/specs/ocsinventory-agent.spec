@@ -14,7 +14,7 @@ Group:          Applications/System
 License:        GPLv3+
 URL:            https://www.ocsinventory-ng.org/
 
-Source0:        %{name}-%{version}.tar.gz
+Source0:        %{name}-%{version}.tar.xz
 
 BuildArch:      x86_64
 BuildRoot:      %{buildroot}
@@ -27,14 +27,24 @@ AutoReqProv:    no
 OCS Inventory Agent.
 
 %prep
-%setup -q -c -n %{name}-%{version}
+# The agent's release doesn't ship a plain ocsinventory-agent-<version>.tar.gz:
+# its "Linux-Rhel" setup archive wraps the same 4 files (ocsinventory-cli,
+# install.sh, uninstall.sh, ocsinventory-agent.service) under its own
+# OCSInventory-Agent-Linux-Rhel-Setup/ directory instead of ocsinventory-agent-
+# <version>/, hence the explicit -n flag below instead of the usual default.
+# (NB: RPM expands macros even inside comments, so never spell out the name
+# of the directive used below in a comment - a bare mention runs it a
+# second time, with no args, and breaks this section.)
+%setup -q -n OCSInventory-Agent-Linux-Rhel-Setup
 
 %build
+# Nothing to build: ocsinventory-cli ships as a prebuilt binary from the
+# agent's own release pipeline.
 
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}/usr/share
-cp -r ocsinventory-agent %{buildroot}/usr/share
+mkdir -p %{buildroot}/usr/share/ocsinventory-agent
+cp -r ./* %{buildroot}/usr/share/ocsinventory-agent/
 chmod 0755 %{buildroot}/usr/share/ocsinventory-agent/ocsinventory-cli
 chmod 0755 %{buildroot}/usr/share/ocsinventory-agent/install.sh
 chmod 0755 %{buildroot}/usr/share/ocsinventory-agent/uninstall.sh
