@@ -168,7 +168,10 @@ jobs:
 
       - name: Install rpm build tooling
         if: steps.source.outputs.repo != '' || matrix.component == 'server'
-        run: dnf install -y rpm-build rpmdevtools gcc make redhat-rpm-config curl
+        # --allowerasing: on el9/el10 images, curl-minimal ships preinstalled
+        # and conflicts with the full curl package; harmless on fedora where
+        # there's no such conflict to resolve.
+        run: dnf install -y --allowerasing rpm-build rpmdevtools gcc make redhat-rpm-config curl
 
       - name: Fetch upstream release tarball into rpm sources
         if: steps.source.outputs.repo != ''
