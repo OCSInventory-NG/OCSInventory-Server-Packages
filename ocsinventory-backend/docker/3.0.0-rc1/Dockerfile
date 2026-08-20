@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # download and extract source code to /app
-ADD https://github.com/OCSInventory-NG/OCSInventory-Server-Backend-Rework/releases/download/${VERSION}/${REPO}-${VERSION}.tar.gz /app/
+ADD https://github.com/gillesdubois/OCSInventory-Server-Backend-Rework/releases/download/${VERSION}/${REPO}-${VERSION}.tar.gz /app/
 RUN tar -xzf /app/${REPO}-${VERSION}.tar.gz -C /app \
     && rm /app/${REPO}-${VERSION}.tar.gz
 
