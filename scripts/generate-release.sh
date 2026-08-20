@@ -13,10 +13,6 @@
 #     release directory (excluding "dev") and stamping the new version
 #     into every file that referenced the old one.
 #
-# NOTE: ocsinventory-release is intentionally NOT touched here. It bundles
-# the YUM repo config + GPG key and is versioned independently of app
-# releases (see REDHAT.md).
-#
 # Usage:
 #   ./scripts/generate-release.sh <version>
 #

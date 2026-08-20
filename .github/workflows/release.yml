@@ -1,9 +1,6 @@
 name: Release
 
 # Fires on any tag looking like a version (3.0.0, 3.1.0-rc1, ...).
-# "ocsinventory-release" (the YUM repo/GPG-key package) is intentionally
-# excluded from this pipeline: it has its own, independent lifecycle
-# (see REDHAT.md), so it is never touched by scripts/generate-release.sh.
 on:
   push:
     tags:
@@ -20,7 +17,7 @@ jobs:
   # ---------------------------------------------------------------------
   # 1. Materialize docker/<version>/, bump debian/changelog and rpm specs,
   #    and open a PR so the generated files stay reviewable and versioned
-  #    in git history (same convention as today's manual releases).
+  #    in git history
   # ---------------------------------------------------------------------
   generate:
     runs-on: ubuntu-latest
@@ -90,12 +87,6 @@ jobs:
           pkg="ocsinventory-${{ matrix.component }}"
           mkdir -p "${pkg}/deb/${pkg}/usr/share"
           if [[ "${{ matrix.component }}" == "agent" ]]; then
-            # Unlike backend/frontend, the agent doesn't publish a plain
-            # ocsinventory-agent-<version>.tar.gz: its release ships one
-            # setup archive per target platform, each wrapping its own
-            # differently-named top-level directory - use the Debian-flavored
-            # Linux one here, and strip that directory instead of relying on
-            # it being named "ocsinventory-agent".
             asset="OCSInventory-Agent-Setup-Linux-Deb-${VERSION}.tar.xz"
             url="https://github.com/${{ steps.source.outputs.repo }}/releases/download/${VERSION}/${asset}"
             echo "fetching $url"
@@ -144,8 +135,7 @@ jobs:
     runs-on: ubuntu-latest
     # One RPM per (component, target OS) combination. rpm's own %dist macro
     # (baked into each distro's redhat-rpm-config) stamps the right suffix
-    # (.fc42/.fc43/.fc44/.el9/.el10) automatically - the .spec files already
-    # branch on %{?rhel}/%{?fedora} where needed, so nothing else to change.
+    # (.fc42/.fc43/.fc44/.el9/.el10) automatically
     container: ${{ matrix.target.image }}
     strategy:
       fail-fast: false
@@ -174,9 +164,7 @@ jobs:
 
       - name: Install rpm build tooling
         if: steps.source.outputs.repo != '' || matrix.component == 'server'
-        # --allowerasing: on el9/el10 images, curl-minimal ships preinstalled
-        # and conflicts with the full curl package; harmless on fedora where
-        # there's no such conflict to resolve.
+        # --allowerasing: on el9/el10 images, curl-minimal workaround
         run: dnf install -y --allowerasing rpm-build rpmdevtools gcc make redhat-rpm-config curl
 
       - name: Fetch upstream release tarball into rpm sources
@@ -218,11 +206,7 @@ jobs:
           path: /github/home/rpmbuild/RPMS/**/*.rpm
 
   # ---------------------------------------------------------------------
-  # 4. Build & tag the docker images (no push to a registry yet — see the
-  #    "publish" job for how the image tarballs reach the GitHub Release).
-  #    "server" has no Dockerfile of its own: its docker/<version>/ only
-  #    holds a docker-compose.yml that references the backend/frontend
-  #    images, so there is nothing to build here for it.
+  # 4. Build & tag the docker images (no push to a registry yet
   # ---------------------------------------------------------------------
   build-docker:
     needs: generate
@@ -285,5 +269,4 @@ jobs:
             Packages built automatically from tag `${{ env.VERSION }}`.
             See the companion PR for the generated docker/deb/rpm packaging files.
 
-            Packages are **unsigned** in this release (GPG signing is not wired
-            into the pipeline yet).
+            Packages are **unsigned** in this release (GPG signing is done on our official repositories).
