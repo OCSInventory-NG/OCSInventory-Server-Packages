@@ -2,3 +2,9 @@
 
 %:
 	dh $@
+
+# Same as the RPM %install step (see ../../rpm/specs/ocsinventory-backend.spec):
+# the source tree only ships .env-sample, debian/install expects a real .env.
+override_dh_install:
+	cp usr/share/ocsinventory-backend/.env-sample usr/share/ocsinventory-backend/.env
+	dh_install
