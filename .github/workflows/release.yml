@@ -136,11 +136,21 @@ jobs:
   build-rpm:
     needs: generate
     runs-on: ubuntu-latest
-    container: fedora:latest
+    # One RPM per (component, target OS) combination. rpm's own %dist macro
+    # (baked into each distro's redhat-rpm-config) stamps the right suffix
+    # (.fc42/.fc43/.fc44/.el9/.el10) automatically - the .spec files already
+    # branch on %{?rhel}/%{?fedora} where needed, so nothing else to change.
+    container: ${{ matrix.target.image }}
     strategy:
       fail-fast: false
       matrix:
         component: [backend, frontend, agent, server]
+        target:
+          - { id: fc42, image: "fedora:42" }
+          - { id: fc43, image: "fedora:43" }
+          - { id: fc44, image: "fedora:44" }
+          - { id: el9,  image: "rockylinux/rockylinux:9" }
+          - { id: el10, image: "rockylinux/rockylinux:10" }
     steps:
       - uses: actions/checkout@v4
         with:
@@ -184,7 +194,7 @@ jobs:
         if: steps.source.outputs.repo != '' || matrix.component == 'server'
         uses: actions/upload-artifact@v4
         with:
-          name: rpm-${{ matrix.component }}
+          name: rpm-${{ matrix.component }}-${{ matrix.target.id }}
           path: /github/home/rpmbuild/RPMS/**/*.rpm
 
   # ---------------------------------------------------------------------
