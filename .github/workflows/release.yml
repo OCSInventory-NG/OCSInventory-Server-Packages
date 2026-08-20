@@ -41,6 +41,7 @@ jobs:
       - name: Open pull request with the generated files
         uses: peter-evans/create-pull-request@v6
         with:
+          base: main
           branch: release/${{ env.VERSION }}
           title: "release: scaffold packaging for ${{ env.VERSION }}"
           commit-message: "release: scaffold docker/deb/rpm for ${{ env.VERSION }}"
