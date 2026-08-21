@@ -6,11 +6,14 @@ debhelper-build-stamp
 *.buildinfo
 *.changes
 *.tar.gz
+*.tar.xz
 *.log
 *.substvars
 
 # agent specific
+# NOTE: etc/ocsinventory-agent/config.json is tracked on purpose (static
+# default config, not fetched) - only usr/share/ (the prebuilt ocsinventory-cli
+# + scripts, fetched from the agent's own release at build time) is ignored.
 ocsinventory-agent/deb/ocsinventory-agent/debian/ocsinventory-agent
-ocsinventory-agent/deb/ocsinventory-agent/etc
 ocsinventory-agent/deb/ocsinventory-agent/usr
 ocsinventory-agent/deb/ocsinventory-agent/debian/files
