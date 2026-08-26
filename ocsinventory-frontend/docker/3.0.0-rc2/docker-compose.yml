@@ -1,0 +1,16 @@
+services:
+  ocsinventory-frontend:
+    image: ocsinventory/ocsinventory-frontend:3.0.0-rc2
+    container_name: ocsinventory-frontend
+    restart: always
+    environment:
+      BACKEND_API_ROUTE_ENV: "http://localhost/"
+    ports:
+      - "8080:80"
+    volumes:
+      - ocsinventory-frontend-config:/usr/share/ocsinventory-frontend/config
+      - ocsinventory-frontend-extensions:/usr/share/ocsinventory-frontend/extensions
+
+volumes:
+  ocsinventory-frontend-config:
+  ocsinventory-frontend-extensions:
