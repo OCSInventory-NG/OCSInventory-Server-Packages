@@ -1,0 +1,9 @@
+extends: default
+
+rules:
+  line-length:
+    max: 120
+  document-start: disable
+  truthy:
+    # GitHub Actions' "on:" key is otherwise flagged as a YAML 1.1 boolean.
+    check-keys: false

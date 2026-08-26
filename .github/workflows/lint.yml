@@ -1,0 +1,244 @@
+name: Lint & build validation
+
+# Fast, PR-time quality gate for the packaging metadata itself (specs,
+# control files, maintainer scripts, Dockerfiles, compose/workflow YAML).
+#
+# This is deliberately lighter than release.yml: that workflow fetches the
+# real upstream tarballs and does full .deb/.rpm/docker builds across the
+# whole support matrix, but only on a version tag. Here we want signal on
+# every PR, long before a release is cut, so backend/frontend/agent (whose
+# real payload is dropped in by the release process, not committed here)
+# only get static validation - a full build of those three would only ever
+# fail on "missing Source0/upstream files", which is expected, not a bug.
+#
+# Phase 1: every job runs in "report-only" mode (continue-on-error: true).
+# Nothing here blocks a merge yet - findings surface as annotations/warnings
+# so the team can clean up the existing backlog before we flip jobs to
+# blocking in a follow-up change.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lint-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------------
+  # Shell scripts: entrypoint.sh, install/uninstall.sh, configure scripts,
+  # and Debian maintainer scripts (postinst/postrm/preinst).
+  # ---------------------------------------------------------------------
+  shell-lint:
+    name: shellcheck / checkbashisms
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Collect shell scripts
+        id: files
+        run: |
+          pattern='(\.sh$|/debian/(postinst|postrm|preinst)$)'
+          files=$(git ls-files | grep -E "$pattern")
+          echo "$files"
+          {
+            echo 'list<<EOF'
+            echo "$files"
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+
+      - name: shellcheck
+        run: |
+          shellcheck ${{ steps.files.outputs.list }}
+
+      - name: Install checkbashisms
+        run: sudo apt-get update && sudo apt-get install -y devscripts
+
+      - name: "checkbashisms on #!/bin/sh scripts"
+        run: |
+          status=0
+          for f in ${{ steps.files.outputs.list }}; do
+            shebang=$(head -n1 "$f")
+            if [ "$shebang" = "#!/bin/sh" ]; then
+              checkbashisms "$f" || status=1
+            fi
+          done
+          exit $status
+
+  # ---------------------------------------------------------------------
+  # Dockerfiles
+  # ---------------------------------------------------------------------
+  hadolint:
+    name: hadolint (${{ matrix.dockerfile }})
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        dockerfile:
+          - ocsinventory-backend/docker/3.0.0-rc1/Dockerfile
+          - ocsinventory-backend/docker/dev/Dockerfile
+          - ocsinventory-frontend/docker/3.0.0-rc1/Dockerfile
+          - ocsinventory-frontend/docker/dev/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ${{ matrix.dockerfile }}
+
+  # ---------------------------------------------------------------------
+  # YAML: docker-compose files + the workflows themselves
+  # ---------------------------------------------------------------------
+  yaml-lint:
+    name: yamllint
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y yamllint
+      - run: |
+          pattern='(docker-compose.*\.ya?ml$|^\.github/workflows/.*\.ya?ml$)'
+          files=$(git ls-files | grep -E "$pattern")
+          echo "$files"
+          yamllint --format github $files
+
+  actionlint:
+    name: actionlint
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: reviewdog/action-actionlint@v1
+        with:
+          fail_level: any
+          # "local" just prints findings and sets the step's exit code - it
+          # needs no extra token permissions beyond contents:read, unlike
+          # the github-check/github-pr-* reporters.
+          reporter: local
+
+  # ---------------------------------------------------------------------
+  # RPM: static validation of every spec (no build required)
+  # ---------------------------------------------------------------------
+  rpm-lint:
+    name: rpmlint / rpmspec --parse
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    container: fedora:42
+    steps:
+      # git must be installed before checkout - the bare fedora image has none.
+      - run: dnf install -y git rpmlint rpm-build
+      - uses: actions/checkout@v4
+      - run: |
+          status=0
+          for spec in $(git ls-files '*.spec'); do
+            echo "== $spec =="
+            rpmlint "$spec" || status=1
+            # Parses tags/macros without requiring Source0 to exist on disk -
+            # catches spec syntax errors for backend/frontend/agent, whose
+            # real Source0 tarball is fetched by release.yml at tag time, not
+            # committed to this repo.
+            rpmspec --parse "$spec" > /dev/null || status=1
+          done
+          exit $status
+
+  # ---------------------------------------------------------------------
+  # RPM: full build for the packages that are genuinely self-contained in
+  # this repo (no external tarball expected). backend/frontend/agent are
+  # intentionally excluded here: release.yml already builds them for real
+  # (fetching the upstream tarball) across the full fc42/fc43/fc44/el9/el10
+  # matrix, but only when a version tag is pushed. Doing it here too, on
+  # every PR without a real tarball, would only ever fail on "missing
+  # Source0", which is expected, not a bug.
+  # ---------------------------------------------------------------------
+  rpm-build:
+    name: rpmbuild -bb (${{ matrix.package }})
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    container: fedora:42
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [ocsinventory-server, ocsinventory-release]
+    steps:
+      # git must be installed before checkout - the bare fedora image has none.
+      - run: dnf install -y git rpmdevtools rpm-build
+      - uses: actions/checkout@v4
+      - env:
+          PKG: ${{ matrix.package }}
+        run: |
+          rpmdev-setuptree
+          cp "$PKG"/rpm/sources/* ~/rpmbuild/SOURCES/ 2>/dev/null || true
+          cp "$PKG"/rpm/specs/"$PKG".spec ~/rpmbuild/SPECS/
+          rpmbuild -bb ~/rpmbuild/SPECS/"$PKG".spec
+
+  # ---------------------------------------------------------------------
+  # Debian: full build for the one package that is self-contained
+  # (ocsinventory-server, a meta-package with no upstream payload).
+  # backend/frontend/agent are covered for real by release.yml's build-deb
+  # job (it fetches the actual upstream tarball), but only at tag time -
+  # see the rpm-build job above for why we don't repeat that here.
+  # ---------------------------------------------------------------------
+  deb-build-server:
+    name: dpkg-buildpackage + lintian (ocsinventory-server)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    container: debian:12
+    steps:
+      # git must be installed before checkout - the bare debian image has none.
+      - run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential debhelper dh-python python3-all python3-setuptools \
+            devscripts lintian git
+      - uses: actions/checkout@v4
+      - working-directory: ocsinventory-server/deb/ocsinventory-server
+        run: dpkg-buildpackage -us -uc -b
+      - working-directory: ocsinventory-server/deb
+        run: lintian --pedantic ./*.changes
+
+  # ---------------------------------------------------------------------
+  # Docker images: the "dev" Dockerfiles are explicitly meant for CI/dev
+  # use (they build from a branch/commit instead of a release tarball), so
+  # they're buildable end-to-end from a clean checkout on every PR. The
+  # "3.0.0-rc1" ones pin a specific past release and mostly guard against
+  # accidental edits; release.yml regenerates and builds fresh
+  # docker/<version>/ images for backend/frontend at tag time.
+  # ---------------------------------------------------------------------
+  docker-build:
+    name: docker build (${{ matrix.context }})
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        context:
+          - ocsinventory-backend/docker/3.0.0-rc1
+          - ocsinventory-backend/docker/dev
+          - ocsinventory-frontend/docker/3.0.0-rc1
+          - ocsinventory-frontend/docker/dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ---------------------------------------------------------------------
+  # Packaging metadata consistency (Maintainer domains, rules exec bit,
+  # trailing whitespace, CRLF, changelog syntax) - see script for details.
+  # ---------------------------------------------------------------------
+  standards-check:
+    name: metadata consistency
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - run: .github/scripts/check-standards.sh

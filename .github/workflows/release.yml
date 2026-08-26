@@ -82,19 +82,22 @@ jobs:
 
       - name: Fetch upstream release tarball
         if: steps.source.outputs.repo != ''
+        env:
+          REPO: ${{ steps.source.outputs.repo }}
+          COMPONENT: ${{ matrix.component }}
         run: |
           set -euo pipefail
-          pkg="ocsinventory-${{ matrix.component }}"
+          pkg="ocsinventory-${COMPONENT}"
           mkdir -p "${pkg}/deb/${pkg}/usr/share"
-          if [[ "${{ matrix.component }}" == "agent" ]]; then
+          if [[ "${COMPONENT}" == "agent" ]]; then
             asset="OCSInventory-Agent-Setup-Linux-Deb-${VERSION}.tar.xz"
-            url="https://github.com/${{ steps.source.outputs.repo }}/releases/download/${VERSION}/${asset}"
+            url="https://github.com/${REPO}/releases/download/${VERSION}/${asset}"
             echo "fetching $url"
             curl -fsSL "$url" -o "/tmp/${asset}"
             mkdir -p "${pkg}/deb/${pkg}/usr/share/${pkg}"
             tar -xJf "/tmp/${asset}" -C "${pkg}/deb/${pkg}/usr/share/${pkg}" --strip-components=1
           else
-            url="https://github.com/${{ steps.source.outputs.repo }}/releases/download/${VERSION}/${pkg}-${VERSION}.tar.gz"
+            url="https://github.com/${REPO}/releases/download/${VERSION}/${pkg}-${VERSION}.tar.gz"
             echo "fetching $url"
             curl -fsSL "$url" -o "/tmp/${pkg}.tar.gz"
             tar -xzf "/tmp/${pkg}.tar.gz" -C "${pkg}/deb/${pkg}/usr/share"
@@ -142,11 +145,16 @@ jobs:
       matrix:
         component: [backend, frontend, agent, server]
         target:
-          - { id: fc42, image: "fedora:42" }
-          - { id: fc43, image: "fedora:43" }
-          - { id: fc44, image: "fedora:44" }
-          - { id: el9,  image: "rockylinux/rockylinux:9" }
-          - { id: el10, image: "rockylinux/rockylinux:10" }
+          - id: fc42
+            image: "fedora:42"
+          - id: fc43
+            image: "fedora:43"
+          - id: fc44
+            image: "fedora:44"
+          - id: el9
+            image: "rockylinux/rockylinux:9"
+          - id: el10
+            image: "rockylinux/rockylinux:10"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -169,21 +177,24 @@ jobs:
 
       - name: Fetch upstream release tarball into rpm sources
         if: steps.source.outputs.repo != ''
+        env:
+          REPO: ${{ steps.source.outputs.repo }}
+          COMPONENT: ${{ matrix.component }}
         run: |
           set -euo pipefail
-          pkg="ocsinventory-${{ matrix.component }}"
+          pkg="ocsinventory-${COMPONENT}"
           rpm_version="${VERSION/-/\~}"
-          if [[ "${{ matrix.component }}" == "agent" ]]; then
+          if [[ "${COMPONENT}" == "agent" ]]; then
             # See build-deb: the agent ships one setup archive per platform
             # instead of a plain ocsinventory-agent-<version>.tar.gz - the
             # .spec's Source0/%prep are written for this Rhel-flavored one,
             # .tar.xz and all (see ocsinventory-agent.spec).
             asset="OCSInventory-Agent-Setup-Linux-Rhel-${VERSION}.tar.xz"
-            url="https://github.com/${{ steps.source.outputs.repo }}/releases/download/${VERSION}/${asset}"
+            url="https://github.com/${REPO}/releases/download/${VERSION}/${asset}"
             echo "fetching $url"
             curl -fsSL "$url" -o "${pkg}/rpm/sources/${pkg}-${rpm_version}.tar.xz"
           else
-            url="https://github.com/${{ steps.source.outputs.repo }}/releases/download/${VERSION}/${pkg}-${VERSION}.tar.gz"
+            url="https://github.com/${REPO}/releases/download/${VERSION}/${pkg}-${VERSION}.tar.gz"
             echo "fetching $url"
             curl -fsSL "$url" -o "${pkg}/rpm/sources/${pkg}-${rpm_version}.tar.gz"
           fi
