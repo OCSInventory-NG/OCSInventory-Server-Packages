@@ -249,7 +249,7 @@ jobs:
       # Report-only for now: exit-code 0, same phase-1 policy as the rest
       # of this workflow.
       - name: Trivy scan (human-readable)
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: scan-target:${{ steps.slug.outputs.slug }}
           format: table
@@ -257,7 +257,7 @@ jobs:
           exit-code: '0'
 
       - name: Trivy scan (SARIF for the Security tab)
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: scan-target:${{ steps.slug.outputs.slug }}
           format: sarif
