@@ -1,6 +1,6 @@
 %define debug_package %{nil}
 %define name ocsinventory-server
-%define version 3.0.0~rc1
+%define version 3.0.0~rc2
 %define release 1
 %define buildroot %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
@@ -38,5 +38,8 @@ rm -rf %{buildroot}
 %doc %{_docdir}/%{name}/README
 
 %changelog
+* Wed Aug 26 2026 OCS Inventory Release Bot <ci@ocsinventory-ng.org> - 3.0.0~rc2-1
+- Release 3.0.0-rc2.
+
 * Thu Jun 04 2026 Léa Droguet <lea.droguet@factorfx.com> - 3.0.0~rc1-1
 - Initial RPM

@@ -1,0 +1,67 @@
+services:
+  ocsinventory-backend:
+    image: ocsinventory/ocsinventory-backend:3.0.0-rc2
+    container_name: ocsinventory-backend
+    restart: always
+    environment:
+      DEBUG_ENV: "False"
+      FRONTEND_REDIRECT_ENV: "http://localhost:8080"
+      DB_ENGINE_ENV: "django.db.backends.postgresql"
+      # CHANGE ME IN PRODUCTION (must match ocsinventory-db's POSTGRES_*)
+      DB_NAME_ENV: "ocsdb"
+      DB_USER_ENV: "ocsuser"
+      DB_PASSWORD_ENV: "ocsuser"
+      DB_HOST_ENV: "ocsinventory-db"
+      DB_PORT_ENV: "5432"
+    volumes:
+      - ocsinventory-backend-socket:/var/run/ocsinventory-backend
+    links:
+      - ocsinventory-db
+    depends_on:
+      ocsinventory-db:
+        condition: service_healthy
+    expose:
+      - 8000
+    networks:
+      - ocsinventory-network
+
+  ocsinventory-proxy:
+    image: nginx
+    container_name: ocsinventory-proxy
+    restart: always
+    volumes:
+      - ./files/nginx/ocsinventory-backend.conf:/etc/nginx/conf.d/default.conf
+      - ocsinventory-backend-socket:/var/run/ocsinventory-backend
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - ocsinventory-backend
+    networks:
+      - ocsinventory-network
+
+  ocsinventory-db:
+    image: postgres:15.15
+    container_name: ocsinventory-db
+    restart: always
+    environment:
+      # CHANGE ME IN PRODUCTION
+      POSTGRES_USER: ocsuser
+      POSTGRES_PASSWORD: ocsuser
+      POSTGRES_DB: ocsdb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ocsuser -d ocsdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - ocsinventory-db:/var/lib/postgresql/data
+    networks:
+      - ocsinventory-network
+
+networks:
+  ocsinventory-network:
+
+volumes:
+  ocsinventory-backend-socket:
+  ocsinventory-db:
