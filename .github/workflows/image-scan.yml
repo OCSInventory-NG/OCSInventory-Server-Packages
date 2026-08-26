@@ -1,0 +1,90 @@
+name: Scheduled image vulnerability scan
+
+# Rebuilds and rescans every docker/<version>/ and docker/dev image in the
+# repo on a schedule, independently of any code change. This is the piece
+# that PR-time scanning (lint.yml's docker-build job) can't cover: a base
+# image (Debian/Ubuntu/Python/Node) can grow new disclosed CVEs on
+# unchanged layers well after a version has been released, so the only way
+# to notice is to rebuild and rescan periodically.
+#
+# Report-only for now (exit-code 0) - see lint.yml for the same phase-1
+# rationale. Results land in the repo's Security > Code scanning tab.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'  # every Monday, 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # -----------------------------------------------------------------------
+  # Find every docker context (one per version dir, per component) so new
+  # releases (docker/3.0.0-rc2/, ...) get picked up automatically without
+  # editing this workflow.
+  # -----------------------------------------------------------------------
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      contexts: ${{ steps.list.outputs.contexts }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: list
+        run: |
+          contexts=$(find ocsinventory-backend/docker ocsinventory-frontend/docker \
+            -mindepth 1 -maxdepth 1 -type d | sort | jq -R -s -c 'split("\n")[:-1]')
+          echo "$contexts"
+          echo "contexts=$contexts" >> "$GITHUB_OUTPUT"
+
+  scan:
+    needs: discover
+    name: rebuild + scan (${{ matrix.context }})
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        context: ${{ fromJson(needs.discover.outputs.contexts) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Slug the matrix context for tag/category names
+        id: slug
+        run: echo "slug=$(echo '${{ matrix.context }}' | tr '/' '-')" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          push: false
+          load: true
+          tags: scan-target:${{ steps.slug.outputs.slug }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Trivy scan (human-readable)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: scan-target:${{ steps.slug.outputs.slug }}
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: '0'
+
+      - name: Trivy scan (SARIF for the Security tab)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: scan-target:${{ steps.slug.outputs.slug }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          exit-code: '0'
+
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif
+          category: scheduled-${{ steps.slug.outputs.slug }}
