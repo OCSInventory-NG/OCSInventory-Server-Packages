@@ -59,19 +59,22 @@ fi
 chown -R www-data:www-data /usr/share/ocsinventory-backend/
 chmod -R 755 /usr/share/ocsinventory-backend/logs
 
-# restart services
-echo "Restarting UWSGI and Nginx services..."
-systemctl restart uwsgi
-systemctl restart nginx
 
-echo "OCS Inventory Backend successfully installed."
+if [ $UPDATE -eq 1 ]; then
+    # restart services only on update, on fresh install configure-ocsinventory-backend.sh script do it
+    echo "Restarting UWSGI and Nginx services..."
+    systemctl restart uwsgi
+    systemctl restart nginx
+fi
 
 if [ $UPDATE -eq 0 ]; then
+    echo "OCS Inventory Backend successfully installed."
     echo "================================================================================================================================="
     echo "=                                                                                                                               ="
     echo "= Please run the script '/usr/share/ocsinventory-backend/tools/configure-ocsinventory-backend.sh' to configure the application. ="
     echo "=                                                                                                                               ="
     echo "================================================================================================================================="
 else
+    echo "OCS Inventory Backend successfully updated."
     rm -rf /usr/share/ocsinventory-backend-backup
 fi
