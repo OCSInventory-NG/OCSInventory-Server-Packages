@@ -1,0 +1,70 @@
+name: Hadolint
+
+# Lints released Dockerfile (docker/<version>/, scaffolded per tag by
+# release.yml). docker/dev/ is excluded for now. CVE scanning of the built
+# images is handled separately by Docker Scout on Docker Hub.
+on:
+  pull_request:
+    paths:
+      - '**/docker/**/Dockerfile'
+      - '!**/docker/dev/Dockerfile'
+      - '.hadolint.yaml'
+      - '.github/workflows/hadolint.yml'
+  push:
+    branches: [main]
+    paths:
+      - '**/docker/**/Dockerfile'
+      - '!**/docker/dev/Dockerfile'
+      - '.hadolint.yaml'
+      - '.github/workflows/hadolint.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  # Find every docker/<version>/Dockerfile so new releases are picked up
+  # automatically, without touching this workflow.
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      files: ${{ steps.find.outputs.files }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: find
+        run: |
+          files=$(find . -type f -iname 'Dockerfile' -path '*/docker/*' ! -path '*/docker/dev/*' \
+            | sed 's|^\./||' | sort | jq -R -s -c 'split("\n")[:-1]')
+          echo "files=${files}" >> "$GITHUB_OUTPUT"
+
+  lint:
+    needs: discover
+    if: needs.discover.outputs.files != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dockerfile: ${{ fromJSON(needs.discover.outputs.files) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Derive a safe id from the Dockerfile path
+        id: slug
+        run: echo "slug=$(echo '${{ matrix.dockerfile }}' | tr '/.' '--')" >> "$GITHUB_OUTPUT"
+
+      - name: Run hadolint on ${{ matrix.dockerfile }}
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ${{ matrix.dockerfile }}
+          config: .hadolint.yaml
+          format: sarif
+          output-file: hadolint-${{ steps.slug.outputs.slug }}.sarif
+          no-fail: true
+
+      - name: Upload SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: hadolint-${{ steps.slug.outputs.slug }}.sarif
+          category: hadolint-${{ steps.slug.outputs.slug }}
