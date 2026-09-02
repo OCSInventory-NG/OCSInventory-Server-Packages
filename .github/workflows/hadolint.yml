@@ -86,4 +86,4 @@ jobs:
           reporter: github-pr-check
           filter_mode: nofilter
           level: warning
-          fail_level: none
+          fail_level: warning
