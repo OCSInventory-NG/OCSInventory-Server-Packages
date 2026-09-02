@@ -1,6 +1,4 @@
 # https://github.com/hadolint/hadolint#configure
-# All default rules enabled for now; add ignores here once the first
+# All default rules enabled for now; add codes here once the first
 # findings have been triaged.
-#
-# ignored:
-#   - DL3007
+ignored: []
