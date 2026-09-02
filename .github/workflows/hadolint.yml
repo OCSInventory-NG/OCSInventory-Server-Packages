@@ -31,7 +31,7 @@ jobs:
     outputs:
       files: ${{ steps.find.outputs.files }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
 
       - id: find
         run: |
@@ -48,14 +48,14 @@ jobs:
       matrix:
         dockerfile: ${{ fromJSON(needs.discover.outputs.files) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
 
       - name: Derive a safe id from the Dockerfile path
         id: slug
         run: echo "slug=$(echo '${{ matrix.dockerfile }}' | tr '/.' '--')" >> "$GITHUB_OUTPUT"
 
       - name: Run hadolint on ${{ matrix.dockerfile }}
-        uses: hadolint/hadolint-action@v3.1.0
+        uses: hadolint/hadolint-action@v3.5.0
         with:
           dockerfile: ${{ matrix.dockerfile }}
           config: .hadolint.yaml
@@ -64,7 +64,7 @@ jobs:
           no-fail: true
 
       - name: Upload SARIF to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4.37.9
         with:
           sarif_file: hadolint-${{ steps.slug.outputs.slug }}.sarif
           category: hadolint-${{ steps.slug.outputs.slug }}
