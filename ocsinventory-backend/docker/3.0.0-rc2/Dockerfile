@@ -1,4 +1,3 @@
-# hadolint CI dry-run: dummy comment to exercise PR diff annotations
 ARG REPO="ocsinventory-backend"
 ARG VERSION=3.0.0-rc2
 

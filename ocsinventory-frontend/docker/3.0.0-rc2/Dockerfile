@@ -1,4 +1,3 @@
-# hadolint CI dry-run: dummy comment to exercise PR diff annotations
 FROM ubuntu:latest
 
 ARG REPO="ocsinventory-frontend"
