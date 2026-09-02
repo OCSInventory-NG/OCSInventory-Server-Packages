@@ -1,0 +1,89 @@
+name: Hadolint
+
+# Lints released Dockerfile (docker/<version>/, scaffolded per tag by
+# release.yml). docker/dev/ is excluded for now. CVE scanning of the built
+# images is handled separately by Docker Scout on Docker Hub.
+on:
+  pull_request:
+    paths:
+      - '**/docker/**/Dockerfile'
+      - '!**/docker/dev/Dockerfile'
+      - '.hadolint.yaml'
+      - '.github/workflows/hadolint.yml'
+  push:
+    branches: [main]
+    paths:
+      - '**/docker/**/Dockerfile'
+      - '!**/docker/dev/Dockerfile'
+      - '.hadolint.yaml'
+      - '.github/workflows/hadolint.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  checks: write
+
+jobs:
+  # Find every docker/<version>/Dockerfile so new releases are picked up
+  # automatically, without touching this workflow.
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      files: ${{ steps.find.outputs.files }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - id: find
+        run: |
+          files=$(find . -type f -iname 'Dockerfile' -path '*/docker/*' ! -path '*/docker/dev/*' \
+            | sed 's|^\./||' | sort | jq -R -s -c 'split("\n")[:-1]')
+          echo "files=${files}" >> "$GITHUB_OUTPUT"
+
+  # SARIF per Dockerfile, uploaded to Security
+  sarif:
+    needs: discover
+    if: needs.discover.outputs.files != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dockerfile: ${{ fromJSON(needs.discover.outputs.files) }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Derive a safe id from the Dockerfile path
+        id: slug
+        run: echo "slug=$(echo '${{ matrix.dockerfile }}' | tr '/.' '--')" >> "$GITHUB_OUTPUT"
+
+      - name: Run hadolint on ${{ matrix.dockerfile }}
+        uses: hadolint/hadolint-action@v3.5.0
+        with:
+          dockerfile: ${{ matrix.dockerfile }}
+          config: .hadolint.yaml
+          format: sarif
+          output-file: hadolint-${{ steps.slug.outputs.slug }}.sarif
+          no-fail: true
+
+      - name: Upload SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v4.37.9
+        with:
+          sarif_file: hadolint-${{ steps.slug.outputs.slug }}.sarif
+          category: hadolint-${{ steps.slug.outputs.slug }}
+
+  # Immediate feedback on the PR itself
+  annotate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: reviewdog/action-hadolint@v1.53.0
+        with:
+          include: '**/docker/**/Dockerfile'
+          exclude: '**/docker/dev/**'
+          hadolint_flags: '-c .hadolint.yaml'
+          reporter: github-pr-check
+          filter_mode: nofilter
+          level: warning
+          fail_level: warning
