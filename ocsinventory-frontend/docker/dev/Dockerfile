@@ -35,7 +35,7 @@ RUN npm ci
 RUN npm run build
 
 
-FROM ubuntu:latest
+FROM ubuntu:24.04
 
 ARG FRONTEND_REPO
 ARG FRONTEND_REF
