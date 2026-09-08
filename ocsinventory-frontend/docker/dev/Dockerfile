@@ -44,7 +44,7 @@ LABEL org.opencontainers.image.source="${FRONTEND_REPO}"
 LABEL org.opencontainers.image.revision="${FRONTEND_REF}"
 LABEL org.ocsinventory.image.kind="dev"
 
-RUN apt update && apt dist-upgrade -y && \
+RUN apt update && \
         apt install -y nginx curl && \
         apt-get -y clean && \
         rm -r /var/lib/apt/lists/* && \

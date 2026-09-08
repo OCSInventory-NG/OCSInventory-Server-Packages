@@ -3,7 +3,7 @@ FROM ubuntu:24.04
 ARG REPO="ocsinventory-frontend"
 ARG VERSION=3.0.0-rc2
 
-RUN apt update && apt dist-upgrade -y && \
+RUN apt update && \
         apt install -y nginx curl && \
         apt-get -y clean && \
         rm -r /var/lib/apt/lists/* && \
