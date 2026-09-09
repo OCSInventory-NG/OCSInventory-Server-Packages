@@ -71,7 +71,7 @@ WORKDIR /app
 # needed by mysqlclient - psycopg2-binary already bundles libpq, libexpat1
 # needed by uwsgi)
 RUN apt-get update && apt-get install -y \
-    libldap2 libsasl2-2 libmariadb3 libexpat1 curl \
+    libldap2 libsasl2-2 libmariadb3 libexpat1 \
     && rm -rf /var/lib/apt/lists/*
 
 # ocsbackend user and permissions
@@ -102,4 +102,4 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 CMD ["uwsgi", "--ini", "/app/uwsgi.ini"]
 
-HEALTHCHECK CMD curl --fail http://localhost:8000 || exit 1
+HEALTHCHECK CMD ["python3", "-c", "import socket; s = socket.socket(socket.AF_UNIX); s.settimeout(3); s.connect('/var/run/ocsinventory-backend/ocsinventory-backend.sock'); s.close()"]
