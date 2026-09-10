@@ -44,8 +44,8 @@ LABEL org.opencontainers.image.source="${FRONTEND_REPO}"
 LABEL org.opencontainers.image.revision="${FRONTEND_REF}"
 LABEL org.ocsinventory.image.kind="dev"
 
-RUN apt update && \
-        apt install -y nginx curl && \
+RUN apt-get update && \
+        apt-get install -y nginx curl && \
         apt-get -y clean && \
         rm -r /var/lib/apt/lists/* && \
         rm /etc/nginx/sites-enabled/default
@@ -62,7 +62,7 @@ RUN chmod +x /entrypoint.sh
 
 EXPOSE 80
 
-HEALTHCHECK CMD curl --fail http://localhost/ || exit 1
+HEALTHCHECK CMD ["curl", "--fail", "http://localhost/"]
 
 ENTRYPOINT ["/entrypoint.sh"]
 
