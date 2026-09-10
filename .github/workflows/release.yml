@@ -116,7 +116,7 @@ jobs:
         run: |
           pkg="ocsinventory-${{ matrix.component }}"
           cd "${pkg}/deb/${pkg}"
-          dpkg-buildpackage -b -us -uc
+          dpkg-buildpackage -F -us -uc
 
       - name: Upload .deb artifact
         if: steps.source.outputs.repo != '' || matrix.component == 'server'
@@ -126,6 +126,9 @@ jobs:
           path: |
             ocsinventory-*/deb/*.deb
             ocsinventory-*/deb/*.changes
+            ocsinventory-*/deb/*.dsc
+            ocsinventory-*/deb/*.tar.gz
+            ocsinventory-*/deb/*.tar.xz
 
   # ---------------------------------------------------------------------
   # 3. Build .rpm for each component, using mock for a clean chroot build.
@@ -196,14 +199,16 @@ jobs:
           rpmdev-setuptree
           cp -f "${pkg}"/rpm/sources/* ~/rpmbuild/SOURCES/ 2>/dev/null || true
           cp -f "${pkg}/rpm/specs/${pkg}.spec" ~/rpmbuild/SPECS/
-          rpmbuild -bb ~/rpmbuild/SPECS/"${pkg}".spec
+          rpmbuild -ba ~/rpmbuild/SPECS/"${pkg}".spec
 
       - name: Upload .rpm artifact
         if: steps.source.outputs.repo != '' || matrix.component == 'server'
         uses: actions/upload-artifact@v4
         with:
           name: rpm-${{ matrix.component }}-${{ matrix.target.id }}
-          path: /github/home/rpmbuild/RPMS/**/*.rpm
+          path: |
+            /github/home/rpmbuild/RPMS/**/*.rpm
+            /github/home/rpmbuild/SRPMS/**/*.src.rpm
 
   # ---------------------------------------------------------------------
   # 4. Build & tag the docker images (no push to a registry yet
@@ -254,7 +259,8 @@ jobs:
       - name: Flatten artifact layout
         run: |
           mkdir -p release-assets
-          find artifacts -type f \( -name '*.deb' -o -name '*.rpm' -o -name '*-docker.tar.gz' \) \
+          find artifacts -type f \( -name '*.deb' -o -name '*.rpm' -o -name '*.dsc' \
+            -o -name '*-docker.tar.gz' -o \( \( -name '*.tar.gz' -o -name '*.tar.xz' \) ! -name '*-docker.tar.gz' \) \) \
             -exec cp -f {} release-assets/ \;
           ls -la release-assets
 
