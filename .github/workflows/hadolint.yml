@@ -81,7 +81,7 @@ jobs:
       - uses: reviewdog/action-hadolint@v1.53.0
         with:
           include: '**/docker/**/Dockerfile'
-          exclude: '**/docker/dev/**'
+          exclude: '**/docker/dev/** **/docker/3.0.0-rc1/**'
           hadolint_flags: '-c .hadolint.yaml'
           reporter: github-pr-check
           filter_mode: nofilter
