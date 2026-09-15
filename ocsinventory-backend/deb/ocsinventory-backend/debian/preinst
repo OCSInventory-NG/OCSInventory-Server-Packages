@@ -11,6 +11,9 @@ if [ -d /usr/share/ocsinventory-backend ]; then
     echo "Backing up existing OCS Inventory Backend installation ..."
     # create a backup dir
     mkdir -p /usr/share/ocsinventory-backend-backup
+    # it receives .env and settings.py, which carry the database password
+    # and the field encryption key
+    chmod 700 /usr/share/ocsinventory-backend-backup
 
     # backup nginx and uwsgi conf
     if [ -f /etc/nginx/sites-available/ocsinventory-backend ]; then
