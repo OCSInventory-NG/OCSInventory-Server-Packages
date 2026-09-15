@@ -1,8 +1,16 @@
 #!/bin/bash
 set -e
 
-echo "Clean OCS Inventory Backend files..."
-rm -rf /usr/share/ocsinventory-backend
-rm -rf /usr/lib/ocsinventory-backend
-rm -rf /var/log/ocsinventory-backend
-echo "OCS Inventory Backend successfully uninstalled."
+case "$1" in
+    remove|purge)
+        echo "Clean OCS Inventory Backend files..."
+        rm -rf /usr/share/ocsinventory-backend
+        rm -rf /usr/lib/ocsinventory-backend
+        rm -rf /var/log/ocsinventory-backend
+        rm -f /etc/nginx/sites-enabled/ocsinventory-backend
+        rm -f /etc/uwsgi/apps-enabled/ocsinventory-backend.ini
+        echo "OCS Inventory Backend successfully uninstalled."
+        ;;
+    upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+        ;;
+esac

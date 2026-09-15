@@ -3,8 +3,11 @@ set -e
 
 echo "Launching OCS Inventory Backend post-installation script"
 
-# if there is a backup directory, restore the configuration, else cp the configuration
-if [ -d "/usr/share/ocsinventory-backend-backup" ]; then
+# an upgrade is a previously configured version,
+# a backup left by the preinst, and a previous installation still in place
+if [ "$1" = configure ] && [ -n "$2" ] \
+   && [ -d "/usr/share/ocsinventory-backend-backup" ] \
+   && [ -d "/usr/lib/ocsinventory-backend/venv" ]; then
     UPDATE=1
 else
     UPDATE=0
@@ -50,9 +53,9 @@ fi
 
 if [ $UPDATE -eq 0 ]; then
     # enable NGINX configuration
-    ln -s /etc/nginx/sites-available/ocsinventory-backend /etc/nginx/sites-enabled/
+    ln -sf /etc/nginx/sites-available/ocsinventory-backend /etc/nginx/sites-enabled/ocsinventory-backend
     # enable UWSGI configuration
-    ln -s /etc/uwsgi/apps-available/ocsinventory-backend.ini /etc/uwsgi/apps-enabled/
+    ln -sf /etc/uwsgi/apps-available/ocsinventory-backend.ini /etc/uwsgi/apps-enabled/ocsinventory-backend.ini
 fi
 
 # change ownership and permissions on logs directory

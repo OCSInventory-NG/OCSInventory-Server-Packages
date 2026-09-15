@@ -1,8 +1,15 @@
 #!/bin/sh
 set -e
 
-echo "Clean OCS Inventory Frontend files..."
-rm -rf /usr/share/ocsinventory-frontend
-rm -rf /var/log/ocsinventory-frontend
-rm -rf /var/lib/ocsinventory-frontend-update
-echo "OCS Inventory Frontend successfully uninstalled."
+case "$1" in
+    remove|purge)
+        echo "Clean OCS Inventory Frontend files..."
+        rm -rf /usr/share/ocsinventory-frontend
+        rm -rf /var/log/ocsinventory-frontend
+        rm -rf /var/lib/ocsinventory-frontend-update
+        rm -f /etc/nginx/sites-enabled/ocsinventory-frontend
+        echo "OCS Inventory Frontend successfully uninstalled."
+        ;;
+    upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+        ;;
+esac

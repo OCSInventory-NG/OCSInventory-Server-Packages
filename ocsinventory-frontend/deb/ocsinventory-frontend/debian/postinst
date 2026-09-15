@@ -15,10 +15,8 @@ fi
 echo "Create ocsinventory-frontend log folder"
 mkdir -p /var/log/ocsinventory-frontend
 
-if [ ! -e /etc/nginx/sites-enabled/ocsinventory-frontend ]; then
-    echo "Enable ocsinventory-frontend"
-    ln -s /etc/nginx/sites-available/ocsinventory-frontend /etc/nginx/sites-enabled/
-fi
+echo "Enable ocsinventory-frontend"
+ln -sf /etc/nginx/sites-available/ocsinventory-frontend /etc/nginx/sites-enabled/ocsinventory-frontend
 echo "Set nginx rights on ocsinventory-frontend"
 chown -R www-data: /usr/share/ocsinventory-frontend
 echo "Restart nginx"
