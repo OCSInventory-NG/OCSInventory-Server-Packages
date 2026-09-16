@@ -38,19 +38,6 @@ fi
 
 deactivate
 
-if [ $UPDATE -eq 1 ]; then
-    echo "Restoring Nginx and UWSGI configuration ..."
-    # restore UWSGI configuration
-    if [ -f /usr/share/ocsinventory-backend-backup/ocsinventory-backend.ini ]; then
-        cp /usr/share/ocsinventory-backend-backup/ocsinventory-backend.ini /etc/uwsgi/apps-available/ocsinventory-backend.ini
-    fi
-
-    # restore NGINX configuration
-    if [ -f /usr/share/ocsinventory-backend-backup/ocsinventory-backend ]; then
-        cp /usr/share/ocsinventory-backend-backup/ocsinventory-backend /etc/nginx/sites-available/ocsinventory-backend
-    fi
-fi
-
 if [ $UPDATE -eq 0 ]; then
     # enable NGINX configuration
     ln -sf /etc/nginx/sites-available/ocsinventory-backend /etc/nginx/sites-enabled/ocsinventory-backend

@@ -7,9 +7,6 @@ then
     if [ -d "/var/lib/ocsinventory-frontend-update/app" ] && [ "$(ls -A /var/lib/ocsinventory-frontend-update/app)" ]; then
         cp -r /var/lib/ocsinventory-frontend-update/app/* /usr/share/ocsinventory-frontend
     fi
-    if [ -f "/var/lib/ocsinventory-frontend-update/nginx/ocsinventory-frontend" ]; then
-        cp /var/lib/ocsinventory-frontend-update/nginx/ocsinventory-frontend /etc/nginx/sites-available
-    fi
 fi
 
 echo "Create ocsinventory-frontend log folder"
