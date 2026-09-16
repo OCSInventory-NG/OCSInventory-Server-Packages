@@ -79,6 +79,7 @@ rm -rf %{buildroot}
 %config(noreplace) %{_sysconfdir}/uwsgi.d/ocsinventory-backend.ini
 %{_unitdir}/ocsinventory-backend-uwsgi.service
 %attr(755, ocsbackend, nginx) /var/log/ocsinventory-backend
+%attr(755, ocsbackend, nginx) /usr/share/ocsinventory-backend/tools/configure-ocsinventory-rhel.sh
 
 %if 0%{?rhel} == 9
 %global python_bin python3.14
