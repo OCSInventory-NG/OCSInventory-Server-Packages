@@ -1,4 +1,4 @@
-FROM ubuntu:24.04
+FROM ubuntu:26.04
 
 ARG REPO="ocsinventory-frontend"
 ARG VERSION=3.0.0-rc2
