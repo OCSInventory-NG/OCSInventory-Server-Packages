@@ -1,6 +1,6 @@
 # Red Hat build
 
-This quick guide explain how to compile OCS Inventory backend, frontend, agent and meta packages for Red Hat.
+This quick guide explain how to compile OCS Inventory backend, frontend, agent, SNMP scanner and meta packages for Red Hat.
 
 ## Requirements
 
@@ -56,7 +56,7 @@ cp ocsinventory-backend/rpm/specs/ocsinventory-backend.spec ~/rpmbuild/SPECS/
 ```
 
 > [!NOTE]
-> Ensure all source files and archives required by the spec files (e.g. `ocsinventory-cli`, `install.sh`, etc. for the agent, or the release tarball `ocsinventory-[backend|frontend]-X.X.X.tar.gz` for the backend/frontend) are placed in `~/rpmbuild/SOURCES/`.
+> Ensure all source files and archives required by the spec files (e.g. `ocsinventory-cli`, `install.sh`, etc. for the agent, or the release tarball `ocsinventory-[backend|frontend|snmp-scanner]-X.X.X.tar.gz` for the backend/frontend/SNMP scanner) are placed in `~/rpmbuild/SOURCES/`.
 
 Navigate to your RPM build directory:
 

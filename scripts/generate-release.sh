@@ -54,7 +54,7 @@ PKG_VERSION="${VERSION/-/\~}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-COMPONENTS=(ocsinventory-backend ocsinventory-frontend ocsinventory-agent ocsinventory-server)
+COMPONENTS=(ocsinventory-backend ocsinventory-frontend ocsinventory-agent ocsinventory-server ocsinventory-snmp-scanner)
 DOCKER_COMPONENTS=(ocsinventory-backend ocsinventory-frontend ocsinventory-server)
 
 changed_files=()
@@ -120,9 +120,15 @@ for pkg in "${COMPONENTS[@]}"; do
   fi
   full_version="${epoch}${PKG_VERSION}-${DEBIAN_RELEASE}"
 
-  echo "-- $pkg: dch -v $full_version"
-  dch --changelog "$changelog" --newversion "$full_version" --distribution stable \
-      "Release $VERSION."
+  current="$(dpkg-parsechangelog -l "$changelog" -S Version)"
+  if [[ "$current" == "$full_version" ]]; then
+    # dch would happily stack a second, identical entry
+    echo "-- $pkg: changelog already at $full_version, skipping"
+  else
+    echo "-- $pkg: dch -v $full_version"
+    dch --changelog "$changelog" --newversion "$full_version" --distribution stable \
+        "Release $VERSION."
+  fi
 
   changed_files+=("$changelog")
 done
