@@ -1,0 +1,12 @@
+[Unit]
+Description=Weekly OCS Inventory SNMP scan
+Documentation=https://github.com/OCSInventory-NG/OCSInventory-SNMP-Scanner
+
+[Timer]
+Unit=ocsinventory-snmp-scanner.service
+OnCalendar=weekly
+RandomizedDelaySec=1h
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -69,6 +69,23 @@ ocsinventory-server/
 ```
 
 ```
+ocsinventory-snmp-scanner/
+  rpm/
+    sources/
+      ocsinventory-snmp-scanner.service
+      ocsinventory-snmp-scanner.timer
+    specs/
+      ocsinventory-snmp-scanner.spec
+  deb/
+    ocsinventory-snmp-scanner/
+      debian/
+      lib/systemd/system/
+        ocsinventory-snmp-scanner.service
+        ocsinventory-snmp-scanner.timer
+      usr/share/ocsinventory-snmp-scanner/
+```
+
+```
 ocsinventory-agent/
   rpm/
     BUILD/

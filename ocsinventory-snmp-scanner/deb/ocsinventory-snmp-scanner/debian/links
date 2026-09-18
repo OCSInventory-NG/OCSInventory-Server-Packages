@@ -1,0 +1,3 @@
+etc/ocsinventory-snmp-scanner usr/share/ocsinventory-snmp-scanner/config
+var/log/ocsinventory-snmp-scanner usr/share/ocsinventory-snmp-scanner/logs
+var/lib/ocsinventory-snmp-scanner/files usr/share/ocsinventory-snmp-scanner/files
