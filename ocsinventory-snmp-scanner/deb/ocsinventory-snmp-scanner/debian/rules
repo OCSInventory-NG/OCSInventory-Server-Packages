@@ -1,0 +1,20 @@
+#!/usr/bin/make -f
+
+SHARE = usr/share/ocsinventory-snmp-scanner
+ETC   = etc/ocsinventory-snmp-scanner
+
+%:
+	dh $@
+
+# The scanner reads config/ and writes logs/ and files/ next to itself:
+# debian/links turns those into symlinks to their FHS locations.
+override_dh_install:
+	mkdir -p $(ETC)
+	cp $(SHARE)/config/scanner.conf-sample $(ETC)/scanner.conf
+	cp $(SHARE)/config/configs.json-sample $(ETC)/configs.json
+	rm -rf $(SHARE)/config $(SHARE)/logs $(SHARE)/files
+	dh_install
+
+# Shipped disabled: nothing is configured yet at install time.
+override_dh_installsystemd:
+	dh_installsystemd --no-enable --no-start
