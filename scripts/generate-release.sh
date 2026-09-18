@@ -145,7 +145,11 @@ for pkg in "${COMPONENTS[@]}"; do
   sed -i "s/^%define version .*/%define version ${PKG_VERSION}/" "$spec"
   sed -i "s/^%define release .*/%define release ${RPM_RELEASE}/" "$spec"
 
-  if grep -q '^%changelog' "$spec"; then
+  entry_re="$(sed_escape "${PKG_VERSION}-${RPM_RELEASE}")"
+  if grep -qE "^\* .* - ${entry_re}\$" "$spec"; then
+    # same reason as the deb changelog above: don't stack a duplicate entry
+    echo "-- $pkg: spec changelog already at $PKG_VERSION-$RPM_RELEASE, skipping"
+  elif grep -q '^%changelog' "$spec"; then
     entry="* ${today} ${DEBFULLNAME} <${DEBEMAIL}> - ${PKG_VERSION}-${RPM_RELEASE}\n- Release ${VERSION}.\n"
     awk -v entry="$entry" '
       /^%changelog/ { print; print entry; next }
