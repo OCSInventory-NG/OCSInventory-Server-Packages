@@ -13,7 +13,7 @@ ARG VERSION
 WORKDIR /app
 
 # build-time dependencies (headers/compilers needed to build python-ldap and friends)
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential python3-dev \
     libldap2-dev libsasl2-dev \
     && rm -rf /var/lib/apt/lists/*
@@ -42,12 +42,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /app
 
 # runtime dependencies (libldap2/libsasl2 needed by python-ldap, libexpat1 needed by uwsgi)
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libldap2 libsasl2-2 libexpat1 \
     && rm -rf /var/lib/apt/lists/*
 
 # ocsbackend user and permissions
-RUN useradd ocsbackend --home /app --shell /bin/bash
+RUN useradd --uid 1000 ocsbackend --home /app --shell /bin/bash
 
 COPY --from=build --chown=ocsbackend:ocsbackend /app /app
 
@@ -68,7 +68,7 @@ EXPOSE 8000
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-USER ocsbackend
+USER 1000
 
 ENTRYPOINT ["/entrypoint.sh"]
 

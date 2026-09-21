@@ -4,7 +4,7 @@ ARG REPO="ocsinventory-frontend"
 ARG VERSION=3.0.0-rc2
 
 RUN apt-get update && \
-        apt-get install -y nginx curl && \
+        apt-get install -y --no-install-recommends nginx curl && \
         apt-get -y clean && \
         rm -r /var/lib/apt/lists/* && \
         rm /etc/nginx/sites-enabled/default
