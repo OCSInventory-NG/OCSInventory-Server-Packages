@@ -13,7 +13,7 @@ ARG VERSION
 WORKDIR /app
 
 # build-time dependencies (headers/compilers needed to build python-ldap and friends)
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential python3-dev \
     libldap2-dev libsasl2-dev \
     && rm -rf /var/lib/apt/lists/*
