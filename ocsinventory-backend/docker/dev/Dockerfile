@@ -14,7 +14,7 @@
 ARG BACKEND_REPO="https://github.com/OCSInventory-NG/OCSInventory-Server-Backend-Rework.git"
 ARG BACKEND_REF="dev"
 
-FROM python:3.12-slim AS build
+FROM python:3.12-slim@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea AS build
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -52,7 +52,7 @@ RUN python3 -m venv /app/ocs-venv \
 COPY files/uwsgi/uwsgi.ini /app/uwsgi.ini
 
 
-FROM python:3.12-slim
+FROM python:3.12-slim@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -71,7 +71,7 @@ WORKDIR /app
 # needed by mysqlclient - psycopg2-binary already bundles libpq, libexpat1
 # needed by uwsgi)
 RUN apt-get update && apt-get install -y \
-    libldap2 libsasl2-2 libmariadb3 libexpat1 curl \
+    libldap2 libsasl2-2 libmariadb3 libexpat1 \
     && rm -rf /var/lib/apt/lists/*
 
 # ocsbackend user and permissions
@@ -102,4 +102,4 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 CMD ["uwsgi", "--ini", "/app/uwsgi.ini"]
 
-HEALTHCHECK CMD curl --fail http://localhost:8000 || exit 1
+HEALTHCHECK CMD ["python3", "-c", "import socket; s = socket.socket(socket.AF_UNIX); s.settimeout(3); s.connect('/var/run/ocsinventory-backend/ocsinventory-backend.sock'); s.close()"]
