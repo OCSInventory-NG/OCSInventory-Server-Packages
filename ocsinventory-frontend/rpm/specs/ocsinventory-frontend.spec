@@ -37,7 +37,22 @@ cp %{SOURCE1} %{buildroot}%{_sysconfdir}/nginx/conf.d/ocsinventory-frontend.conf
 %clean
 rm -rf %{buildroot}
 
+%pre
+if [ -d /usr/share/ocsinventory-frontend/config ]; then
+    echo "Before update, save ocsinventory-frontend configuration files"
+    rm -rf /var/lib/ocsinventory-frontend-update
+    mkdir -p /var/lib/ocsinventory-frontend-update
+    cp -r /usr/share/ocsinventory-frontend/config /var/lib/ocsinventory-frontend-update/config
+fi
+
 %post
+if [ -d /var/lib/ocsinventory-frontend-update/config ]; then
+    echo "Restore ocsinventory-frontend configuration files"
+    if cp -r /var/lib/ocsinventory-frontend-update/config/. /usr/share/ocsinventory-frontend/config/; then
+        rm -rf /var/lib/ocsinventory-frontend-update
+    fi
+fi
+
 chown -R nginx:nginx /usr/share/ocsinventory-frontend
 
 echo "NOTE: the stock /etc/nginx/nginx.conf ships an inline 'server {}' block"
