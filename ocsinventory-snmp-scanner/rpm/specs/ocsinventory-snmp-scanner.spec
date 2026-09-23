@@ -69,7 +69,7 @@ rm -rf %{buildroot}
 %files
 %defattr(644, root, root, 755)
 /usr/share/%{name}
-%attr(640, root, ocssnmp) %config(noreplace) %{_sysconfdir}/%{name}/scanner.conf
+%attr(640, ocssnmp, ocssnmp) %config(noreplace) %{_sysconfdir}/%{name}/scanner.conf
 %attr(640, root, ocssnmp) %config(noreplace) %{_sysconfdir}/%{name}/configs.json
 %{_unitdir}/%{name}.service
 %{_unitdir}/%{name}.timer
@@ -124,6 +124,9 @@ fi
 %postun
 if [ "$1" = "0" ]; then
     rm -rf /usr/lib/%{name} /var/log/%{name} /var/lib/%{name}
+    if getent passwd ocssnmp >/dev/null; then
+        userdel ocssnmp >/dev/null 2>&1 || true
+    fi
     systemctl daemon-reload
 fi
 

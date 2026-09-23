@@ -28,7 +28,8 @@ case "$1" in
             sed -i "s|^name[[:space:]]*=.*|name = $(hostname -s)|" "$CONFDIR/scanner.conf"
         fi
 
-        chown root:ocssnmp "$CONFDIR/scanner.conf" "$CONFDIR/configs.json"
+        chown ocssnmp:ocssnmp "$CONFDIR/scanner.conf"
+        chown root:ocssnmp "$CONFDIR/configs.json"
         chmod 0640 "$CONFDIR/scanner.conf" "$CONFDIR/configs.json"
         chown ocssnmp:ocssnmp /var/log/$PKG /var/lib/$PKG \
                               /var/lib/$PKG/files /var/lib/$PKG/mibs
