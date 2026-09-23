@@ -1,0 +1,27 @@
+[Unit]
+Description=OCS Inventory SNMP Scanner
+Documentation=https://github.com/OCSInventory-NG/OCSInventory-SNMP-Scanner
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ocssnmp
+Group=ocssnmp
+WorkingDirectory=/usr/share/ocsinventory-snmp-scanner
+ExecStart=/usr/lib/ocsinventory-snmp-scanner/venv/bin/python /usr/share/ocsinventory-snmp-scanner/SnmpScanner.py
+
+# Scans are sequential: a /24 of dead addresses takes ~45 min, well past the 90s default.
+TimeoutStartSec=0
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+ReadWritePaths=/etc/ocsinventory-snmp-scanner
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

@@ -64,7 +64,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        component: [backend, frontend, agent, server]
+        component: [backend, frontend, agent, server, snmp-scanner]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -77,6 +77,7 @@ jobs:
             backend)  echo "repo=OCSInventory-NG/OCSInventory-Server-Backend-Rework" >> "$GITHUB_OUTPUT" ;;
             frontend) echo "repo=OCSInventory-NG/OCSInventory-Server-Frontend-Rework" >> "$GITHUB_OUTPUT" ;;
             agent)    echo "repo=OCSInventory-NG/OCSInventory-Agent-Rework" >> "$GITHUB_OUTPUT" ;;
+            snmp-scanner) echo "repo=OCSInventory-NG/OCSInventory-SNMP-Scanner" >> "$GITHUB_OUTPUT" ;;
             server)   echo "repo=" >> "$GITHUB_OUTPUT" ;; # meta-package, no upstream source
           esac
 
@@ -143,7 +144,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        component: [backend, frontend, agent, server]
+        component: [backend, frontend, agent, server, snmp-scanner]
         target:
           - { id: fc42, image: "fedora:42" }
           - { id: fc43, image: "fedora:43" }
@@ -162,6 +163,7 @@ jobs:
             backend)  echo "repo=OCSInventory-NG/OCSInventory-Server-Backend-Rework" >> "$GITHUB_OUTPUT" ;;
             frontend) echo "repo=OCSInventory-NG/OCSInventory-Server-Frontend-Rework" >> "$GITHUB_OUTPUT" ;;
             agent)    echo "repo=OCSInventory-NG/OCSInventory-Agent-Rework" >> "$GITHUB_OUTPUT" ;;
+            snmp-scanner) echo "repo=OCSInventory-NG/OCSInventory-SNMP-Scanner" >> "$GITHUB_OUTPUT" ;;
             server)   echo "repo=" >> "$GITHUB_OUTPUT" ;;
           esac
 

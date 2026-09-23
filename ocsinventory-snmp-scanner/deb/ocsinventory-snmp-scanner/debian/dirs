@@ -1,0 +1,4 @@
+usr/lib/ocsinventory-snmp-scanner
+var/log/ocsinventory-snmp-scanner
+var/lib/ocsinventory-snmp-scanner/files
+var/lib/ocsinventory-snmp-scanner/mibs

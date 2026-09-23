@@ -1,0 +1,22 @@
+Source: ocsinventory-snmp-scanner
+Section: ocsinventory
+Priority: optional
+Maintainer: Léa Droguet <lea.droguet@factorfx.com>
+Homepage: https://www.ocsinventory-ng.org/
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13)
+
+Package: ocsinventory-snmp-scanner
+Architecture: all
+Depends: ${misc:Depends},
+ python3 (>= 3.9),
+ python3-venv,
+ python3-pip,
+ adduser,
+ ca-certificates
+Description: OCS Inventory SNMP Scanner
+ Network scanner that collects device information over SNMP and reports it
+ to an OCS Inventory server, or stores the inventories locally when running
+ in OFFLINE mode.

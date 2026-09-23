@@ -1,6 +1,6 @@
 # Debian build
 
-This quickguide explain how to compile OCS Inventory backend, frontend, agent and meta packages for debian.
+This quickguide explain how to compile OCS Inventory backend, frontend, agent, SNMP scanner and meta packages for debian.
 
 ## Requirements
 
@@ -51,6 +51,7 @@ First, navigate to the package directory:
 cd ocsinventory-backend/deb/ocsinventory-backend # Backend package path
 cd ocsinventory-frontend/deb/ocsinventory-frontend # Frontend package path
 cd ocsinventory-agent/deb/ocsinventory-agent # Agent package path
+cd ocsinventory-snmp-scanner/deb/ocsinventory-snmp-scanner # SNMP scanner package path
 cd ocsinventory-server/deb/ocsinventory-server # Meta package path
 ```
 
@@ -72,6 +73,14 @@ The -us -ui -uc arguments means:
 - unsigned source package
 - unsigned .buildinfo file
 - unsigned .buildinfo and .changes file
+
+> [!NOTE]
+> The SNMP scanner expects the upstream tarball to be extracted first:
+>
+> ```bash
+> tar -xzf ocsinventory-snmp-scanner-X.X.X.tar.gz \
+>   -C ocsinventory-snmp-scanner/deb/ocsinventory-snmp-scanner/usr/share
+> ```
 
 ## Package files ouput
 

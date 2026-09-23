@@ -1,0 +1,52 @@
+#!/bin/sh
+set -e
+
+PKG=ocsinventory-snmp-scanner
+SHARE=/usr/share/$PKG
+VENV=/usr/lib/$PKG/venv
+CONFDIR=/etc/$PKG
+
+case "$1" in
+    configure)
+        if ! getent passwd ocssnmp >/dev/null; then
+            adduser --system --group --no-create-home --home /var/lib/$PKG \
+                    --shell /usr/sbin/nologin ocssnmp >/dev/null
+        fi
+
+        # Debian 12+ enforces PEP 668: no pip into the system interpreter.
+        if [ ! -d "$VENV" ]; then
+            echo "Creating virtual environment..."
+            python3 -m venv "$VENV"
+        fi
+        echo "Installing requirements ..."
+        "$VENV/bin/pip" install --quiet --upgrade pip
+        "$VENV/bin/pip" install --quiet -r "$SHARE/requirements.txt"
+
+        # Left empty, the scanner generates a name and rewrites scanner.conf
+        # through configparser, dropping every comment from the conffile.
+        if [ -z "$2" ] && grep -qE '^name[[:space:]]*=[[:space:]]*$' "$CONFDIR/scanner.conf"; then
+            sed -i "s|^name[[:space:]]*=.*|name = $(hostname -s)|" "$CONFDIR/scanner.conf"
+        fi
+
+        chown ocssnmp:ocssnmp "$CONFDIR/scanner.conf"
+        chown root:ocssnmp "$CONFDIR/configs.json"
+        chmod 0640 "$CONFDIR/scanner.conf" "$CONFDIR/configs.json"
+        chown ocssnmp:ocssnmp /var/log/$PKG /var/lib/$PKG \
+                              /var/lib/$PKG/files /var/lib/$PKG/mibs
+
+        if [ -z "$2" ]; then
+            echo "==============================================================================="
+            echo "= OCS Inventory SNMP Scanner installed.                                       ="
+            echo "=                                                                             ="
+            echo "= 1. Configure it:   /etc/ocsinventory-snmp-scanner/scanner.conf              ="
+            echo "=                    /etc/ocsinventory-snmp-scanner/configs.json              ="
+            echo "= 2. Try a run:      systemctl start ocsinventory-snmp-scanner.service        ="
+            echo "= 3. Schedule it:    systemctl enable --now ocsinventory-snmp-scanner.timer   ="
+            echo "==============================================================================="
+        fi
+        ;;
+esac
+
+#DEBHELPER#
+
+exit 0
