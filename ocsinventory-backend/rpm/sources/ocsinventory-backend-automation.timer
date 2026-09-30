@@ -1,0 +1,13 @@
+[Unit]
+Description=Run OCS Inventory Backend automation tasks every minute
+Documentation=https://github.com/OCSInventory-NG/OCSInventory-Server-Backend-Rework
+
+[Timer]
+Unit=ocsinventory-backend-automation.service
+# manage.py automation matches task schedules to the minute, so fire on each
+# minute boundary. A run still in progress makes the timer skip, never overlap.
+OnCalendar=minutely
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target
