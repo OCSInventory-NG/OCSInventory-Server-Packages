@@ -19,6 +19,8 @@ Source1:        ocsinventory-backend.conf
 Source2:        ocsinventory-backend.ini
 Source3:        ocsinventory-backend-uwsgi.service
 Source4:        configure-ocsinventory-rhel.sh
+Source5:        ocsinventory-backend-automation.service
+Source6:        ocsinventory-backend-automation.timer
 
 BuildRoot:      %{buildroot}
 
@@ -61,6 +63,8 @@ cp %{SOURCE2} %{buildroot}/etc/uwsgi.d/ocsinventory-backend.ini
 # Copy systemd unit
 mkdir -p %{buildroot}%{_unitdir}
 cp %{SOURCE3} %{buildroot}%{_unitdir}/ocsinventory-backend-uwsgi.service
+cp %{SOURCE5} %{buildroot}%{_unitdir}/ocsinventory-backend-automation.service
+cp %{SOURCE6} %{buildroot}%{_unitdir}/ocsinventory-backend-automation.timer
 
 # create log directory
 mkdir -p %{buildroot}/var/log/ocsinventory-backend
@@ -78,6 +82,8 @@ rm -rf %{buildroot}
 %config(noreplace) %{_sysconfdir}/nginx/conf.d/ocsinventory-backend.conf
 %config(noreplace) %{_sysconfdir}/uwsgi.d/ocsinventory-backend.ini
 %{_unitdir}/ocsinventory-backend-uwsgi.service
+%{_unitdir}/ocsinventory-backend-automation.service
+%{_unitdir}/ocsinventory-backend-automation.timer
 %attr(755, ocsbackend, nginx) /var/log/ocsinventory-backend
 %attr(755, ocsbackend, nginx) /usr/share/ocsinventory-backend/tools/configure-ocsinventory-rhel.sh
 
@@ -104,6 +110,10 @@ if [ -d /usr/share/ocsinventory-backend ]; then
     if [ -f /usr/share/ocsinventory-backend/.env ]; then
         cp /usr/share/ocsinventory-backend/.env /var/lib/ocsinventory-backend/.envbackup
         chmod 600 /var/lib/ocsinventory-backend/.envbackup
+    fi
+    # upgrading from a release without the automation timer: enable it in %%post
+    if [ ! -f %{_unitdir}/ocsinventory-backend-automation.timer ]; then
+        touch /var/lib/ocsinventory-backend/.enable-automation
     fi
 else
     echo "=============================================="
@@ -160,6 +170,19 @@ echo "Restarting UWSGI and Nginx services..."
 systemctl restart ocsinventory-backend-uwsgi
 systemctl restart nginx
 
+# on fresh install configure-ocsinventory-rhel.sh enables the automation timer
+if [ -f /var/lib/ocsinventory-backend/.envbackup ]; then
+    systemctl daemon-reload
+    if [ -f /var/lib/ocsinventory-backend/.enable-automation ]; then
+        systemctl enable ocsinventory-backend-automation.timer
+        rm -f /var/lib/ocsinventory-backend/.enable-automation
+    fi
+    # start automation unless the admin disabled it
+    if systemctl is-enabled --quiet ocsinventory-backend-automation.timer; then
+        systemctl start ocsinventory-backend-automation.timer
+    fi
+fi
+
 echo "OCS Inventory Backend successfully installed."
 
 if [ ! -f /var/lib/ocsinventory-backend/.envbackup ]; then
@@ -174,6 +197,8 @@ fi
 
 %preun
 if [ "$1" = "0" ]; then
+    systemctl stop ocsinventory-backend-automation.timer ocsinventory-backend-automation.service
+    systemctl disable ocsinventory-backend-automation.timer
     systemctl stop ocsinventory-backend-uwsgi
     systemctl disable ocsinventory-backend-uwsgi
 fi
