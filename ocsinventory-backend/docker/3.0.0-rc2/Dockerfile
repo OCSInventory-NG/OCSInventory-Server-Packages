@@ -28,7 +28,8 @@ RUN python3 -m venv /app/ocs-venv \
     && /app/ocs-venv/bin/pip install --upgrade pip \
     && /app/ocs-venv/bin/pip install uwsgi \
     && /app/ocs-venv/bin/pip install -r /app/ocsinventory-backend/requirements.txt \
-    && /app/ocs-venv/bin/pip install -r /app/ocsinventory-backend/requirements_psql.txt
+    && /app/ocs-venv/bin/pip install -r /app/ocsinventory-backend/requirements_psql.txt \
+    && /app/ocs-venv/bin/pip install python-nmap==0.7.1
 
 COPY files/uwsgi/uwsgi.ini /app/uwsgi.ini
 
@@ -38,12 +39,16 @@ FROM python:3.12-slim@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV DEBIAN_FRONTEND=noninteractive
+# venv first in PATH so `docker exec ... python manage.py` uses the venv interpreter
+ENV PATH="/app/ocs-venv/bin:$PATH"
 
 WORKDIR /app
 
-# runtime dependencies (libldap2/libsasl2 needed by python-ldap, libexpat1 needed by uwsgi)
+# runtime dependencies (libldap2/libsasl2 needed by python-ldap, libexpat1 needed by uwsgi,
+# nmap/fping needed by the ipdiscover scan)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libldap2 libsasl2-2 libexpat1 \
+    nmap fping \
     && rm -rf /var/lib/apt/lists/*
 
 # ocsbackend user and permissions
