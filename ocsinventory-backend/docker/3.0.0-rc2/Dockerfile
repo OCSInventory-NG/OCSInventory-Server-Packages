@@ -45,9 +45,10 @@ ENV PATH="/app/ocs-venv/bin:$PATH"
 WORKDIR /app
 
 # runtime dependencies (libldap2/libsasl2 needed by python-ldap, libexpat1 needed by uwsgi,
+# nmap/fping needed by the ipdiscover scan)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libldap2 libsasl2-2 libexpat1 \
-    nmap fping iputils-ping \
+    nmap fping \
     && rm -rf /var/lib/apt/lists/*
 
 # ocsbackend user and permissions
