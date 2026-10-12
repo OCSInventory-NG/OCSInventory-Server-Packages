@@ -1,6 +1,6 @@
 %define debug_package %{nil}
 %define name ocsinventory-agent
-%define version 3.0.0~rc2
+%define version 3.0.0
 %define release 1
 %define buildroot %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 %global __strip /bin/true
@@ -129,6 +129,9 @@ if [ "$1" -eq 0 ]; then
 fi
 
 %changelog
+* Mon Oct 12 2026 OCS Inventory Release Bot <ci@ocsinventory-ng.org> - 3.0.0-1
+- Release 3.0.0.
+
 * Wed Aug 26 2026 OCS Inventory Release Bot <ci@ocsinventory-ng.org> - 3.0.0~rc2-1
 - Release 3.0.0-rc2.
 
