@@ -52,13 +52,18 @@ chmod -R 755 /usr/share/ocsinventory-backend/logs
 # enables the automation timer (dh_installsystemd --no-start)
 #DEBHELPER#
 
+# reload units on every install: a failed automation service from a previous
+# install would otherwise stay in memory and block the timer
+if [ -d /run/systemd/system ]; then
+    systemctl daemon-reload
+fi
+
 if [ $UPDATE -eq 1 ]; then
     # restart services only on update, on fresh install configure-ocsinventory-backend.sh script do it
     echo "Restarting UWSGI and Nginx services..."
     systemctl restart uwsgi
     systemctl restart nginx
     # start automation unless the admin disabled it
-    systemctl daemon-reload
     if systemctl is-enabled --quiet ocsinventory-backend-automation.timer; then
         systemctl start ocsinventory-backend-automation.timer
     fi
