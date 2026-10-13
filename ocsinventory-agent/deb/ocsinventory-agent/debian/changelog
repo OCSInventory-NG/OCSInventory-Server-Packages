@@ -1,3 +1,9 @@
+ocsinventory-agent (3:3.0.0-1) stable; urgency=medium
+
+  * Release 3.0.0.
+
+ -- OCS Inventory Release Bot <ci@ocsinventory-ng.org>  Mon, 12 Oct 2026 09:29:27 +0000
+
 ocsinventory-agent (3:3.0.0~rc2-1) stable; urgency=medium
 
   * Release 3.0.0-rc2.
