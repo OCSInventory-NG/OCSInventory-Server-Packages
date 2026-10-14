@@ -20,7 +20,7 @@ jobs:
   #    in git history
   # ---------------------------------------------------------------------
   generate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       branch: release/${{ github.ref_name }}
     steps:
@@ -60,7 +60,7 @@ jobs:
   # ---------------------------------------------------------------------
   build-deb:
     needs: generate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -136,7 +136,7 @@ jobs:
   # ---------------------------------------------------------------------
   build-rpm:
     needs: generate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # One RPM per (component, target OS) combination. rpm's own %dist macro
     # (baked into each distro's redhat-rpm-config) stamps the right suffix
     # (.fc42/.fc43/.fc44/.el9/.el10) automatically
@@ -217,7 +217,7 @@ jobs:
   # ---------------------------------------------------------------------
   build-docker:
     needs: generate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -252,7 +252,7 @@ jobs:
   # ---------------------------------------------------------------------
   publish:
     needs: [build-deb, build-rpm, build-docker]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/download-artifact@v8.0.2
         with:
