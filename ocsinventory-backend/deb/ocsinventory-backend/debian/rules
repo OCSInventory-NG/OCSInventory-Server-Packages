@@ -8,3 +8,8 @@
 override_dh_install:
 	cp usr/share/ocsinventory-backend/.env-sample usr/share/ocsinventory-backend/.env
 	dh_install
+
+# The timer is enabled but not started: the database is not configured yet at
+# install time. postinst starts it on upgrade, configure script on fresh install.
+override_dh_installsystemd:
+	dh_installsystemd --no-start

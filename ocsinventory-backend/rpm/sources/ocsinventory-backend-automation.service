@@ -1,0 +1,18 @@
+[Unit]
+Description=OCS Inventory Backend automation tasks
+Documentation=https://github.com/OCSInventory-NG/OCSInventory-Server-Backend-Rework
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ocsbackend
+Group=nginx
+WorkingDirectory=/usr/share/ocsinventory-backend
+ExecStart=/usr/lib/ocsinventory-backend/venv/bin/python /usr/share/ocsinventory-backend/manage.py automation
+
+# IpDiscover scans can run well past the 90s default.
+TimeoutStartSec=0
+
+PrivateTmp=true
+ProtectHome=true

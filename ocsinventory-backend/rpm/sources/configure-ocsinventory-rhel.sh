@@ -112,6 +112,16 @@ else
 	exit 1
 fi
 
+# database is ready: schedule automation tasks
+echo "Enabling automation tasks timer..."
+systemctl enable --now ocsinventory-backend-automation.timer
+if [ $? -eq 0 ]; then
+	echo "Automation tasks timer enabled successfully."
+else
+	echo "Error enabling automation tasks timer. Please check the timer status manually."
+	exit 1
+fi
+
 echo ""
 echo "For more information, refer to /tmp/ocsinventory-backend-configuration.log for the database migration logs."
 

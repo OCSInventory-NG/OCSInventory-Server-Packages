@@ -1,3 +1,4 @@
 usr/share/ocsinventory-backend/*  usr/share/ocsinventory-backend/
 usr/share/ocsinventory-backend/.env  usr/share/ocsinventory-backend/
 etc/* etc/
+lib/systemd/system/* lib/systemd/system/
