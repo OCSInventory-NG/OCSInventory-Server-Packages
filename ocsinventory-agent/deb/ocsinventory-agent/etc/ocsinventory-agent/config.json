@@ -8,5 +8,5 @@
   "log_file_path": "/var/log/ocsinventory-agent/ocsinventory-agent.log",
   "data_directory": "/var/lib/ocsinventory-data",
   "certificate": "none",
-  "bypass_certificate": false
+  "bypass-certificate": false
 }
