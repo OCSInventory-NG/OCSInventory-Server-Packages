@@ -62,7 +62,7 @@ cat <<'CONFIG' > %{buildroot}%{_sysconfdir}/ocsinventory-agent/config.json
   "log_file_path": "/var/log/ocsinventory-agent/ocsinventory-agent.log",
   "data_directory": "/var/lib/ocsinventory-data",
   "certificate": "none",
-  "bypass_certificate": false
+  "bypass-certificate": false
 }
 CONFIG
 
