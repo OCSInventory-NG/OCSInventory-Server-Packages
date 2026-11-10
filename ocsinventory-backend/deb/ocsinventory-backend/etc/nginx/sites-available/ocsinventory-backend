@@ -19,7 +19,7 @@ server {
         uwsgi_pass      unix:/var/run/uwsgi/app/ocsinventory-backend/socket;
         uwsgi_param     UWSGI_SCHEME $scheme;
         uwsgi_param     SERVER_SOFTWARE nginx/$nginx_version;
-        uwsgi_param     HTTP_HOST $host;
+        uwsgi_param     HTTP_HOST $host:$server_port;
         uwsgi_param     REQUEST_URI $request_uri;
         uwsgi_param     DOCUMENT_ROOT $document_root;
     }
