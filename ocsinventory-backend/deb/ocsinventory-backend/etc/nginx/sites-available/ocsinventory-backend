@@ -10,6 +10,10 @@ server {
         root /usr/share/ocsinventory-backend/;
     }
 
+    location /media/ {
+        root /usr/share/ocsinventory-backend/;
+    }
+
     location / {
         include         uwsgi_params;
         uwsgi_pass      unix:/var/run/uwsgi/app/ocsinventory-backend/socket;
